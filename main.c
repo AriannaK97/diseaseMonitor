@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include "data_io.h"
+#include "list_lib.h"
 
 
 int main(int argc, char** argv) {
@@ -48,6 +49,18 @@ int main(int argc, char** argv) {
  *****************************************************************************/
     FILE *patientRecordsFile;
     patientRecordsFile = openFile(inputFile);
+    size_t lineLenght;
+    size_t BUFFERSIZE;
+    List *patientList;
+
+    lineLenght = getMaxFromFile(patientRecordsFile, LINE_LENGTH);
+    BUFFERSIZE = getMaxFromFile(patientRecordsFile, BUFFER_SIZE);
+
+    printf("%lu\n", lineLenght);
+    printf("%lu\n", BUFFERSIZE);
+
+    patientList = read_input_file(patientRecordsFile, lineLenght);
+
 
     return 0;
 }
