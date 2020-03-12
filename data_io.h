@@ -5,8 +5,11 @@
 #ifndef DISEASEMONITOR_DATA_IO_H
 #define DISEASEMONITOR_DATA_IO_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "list_lib.h"
-#include "data_io.h"
+#include "hashTable.h"
 
 struct Date{
     int day;
@@ -16,10 +19,10 @@ struct Date{
 
 typedef struct PatientCase{
     int caseNum;
-    char* name;
-    char* surname;
-    char* virus;
-    char* country;
+    char name[32];
+    char surname[32];
+    char virus[32];
+    char country[32];
     struct Date importDate;
     struct Date exportDate;
 }PatientCase;
@@ -32,5 +35,7 @@ enum {
 FILE* openFile(char *inputFile);
 int getMaxFromFile(FILE* patientRecordsFile, int returnVal);
 
-struct list* read_input_file(FILE* patientRecordsFile, size_t maxStrLength);
+List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength,
+        HashTable** diseaseHashTable, HashTable** countryHashTable);
+
 #endif //DISEASEMONITOR_DATA_IO_H

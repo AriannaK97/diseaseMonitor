@@ -5,7 +5,9 @@
 #ifndef DISEASEMONITOR_LIST_LIB_H
 #define DISEASEMONITOR_LIST_LIB_H
 
-#include "data_io.h"
+#include <stdlib.h>
+#include <stdio.h>
+
 
 typedef struct node{
     void* item ;
@@ -23,5 +25,6 @@ Node* nodeInit(void* item);
 List* linkedListInit(Node* node);
 void push(Node* listNode, List* linkedList);
 void listMemoryDeallock(List* linkedList);
+void printList(List* patientList);
 
 #endif //DISEASEMONITOR_LIST_LIB_H

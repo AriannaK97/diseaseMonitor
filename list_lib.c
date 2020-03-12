@@ -1,11 +1,8 @@
 //
 // Created by AriannaK97 on 10/3/20.
 //
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
 #include "list_lib.h"
+#include "data_io.h"
 
 Node* nodeInit(void* item){
 
@@ -54,4 +51,17 @@ Node* popNode(List* linkedList){
         linkedList->tail = NULL;
     }
     return node;
+}
+
+void printList(List* patientList){
+    PatientCase *newPatient;
+    Node* newNode;
+    while (patientList->head != NULL){
+        newNode = popNode(patientList);
+        newPatient = newNode->item;
+        fprintf(stdout,"case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
+                       "exportDate: %d-%d-%d\n", newPatient->caseNum, newPatient->name, newPatient->surname, newPatient->virus,
+                newPatient->country, newPatient->importDate.day, newPatient->importDate.month, newPatient->importDate.year
+                ,newPatient->exportDate.day, newPatient->exportDate.month, newPatient->exportDate.year);
+    }
 }

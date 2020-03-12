@@ -1,11 +1,7 @@
 //
 // Created by AriannaK97 on 9/3/20.
 //
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "data_io.h"
-#include "list_lib.h"
 
 FILE* openFile(char *inputFile){
     FILE *patientRecordsFile;
@@ -72,16 +68,16 @@ PatientCase* getPatient(char* buffer){
             newPatient->caseNum = atoi(token);
             token = strtok(NULL, delim);
         } else if (tokenCase == 1){
-            newPatient->name = token;
+            strcpy(newPatient->name, token);
             token = strtok(NULL, delim);
         }else if (tokenCase == 2){
-            newPatient->surname = token;
+            strcpy(newPatient->surname, token);
             token = strtok(NULL, delim);
         }else if (tokenCase == 3){
-            newPatient->virus = token;
+            strcpy(newPatient->virus, token);
             token = strtok(NULL, delim);
         }else if (tokenCase == 4){
-            newPatient->country = token;
+            strcpy(newPatient->country, token);
             token = strtok(NULL, dateDelim);
         }else if (tokenCase == 5){
             newPatient->importDate.day = atoi(token);
@@ -113,15 +109,15 @@ PatientCase* getPatient(char* buffer){
         tokenCase++;
     }
     tokenCase = 0;
-    fprintf(stdout,"case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
-                   "exportDate: %d-%d-%d\n", newPatient->caseNum, newPatient->name, newPatient->surname, newPatient->virus,
-                   newPatient->country, newPatient->importDate.day, newPatient->importDate.month, newPatient->importDate.year
-                   ,newPatient->exportDate.day, newPatient->exportDate.month, newPatient->exportDate.year);
+//    fprintf(stdout,"case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
+//                   "exportDate: %d-%d-%d\n", newPatient->caseNum, newPatient->name, newPatient->surname, newPatient->virus,
+//                   newPatient->country, newPatient->importDate.day, newPatient->importDate.month, newPatient->importDate.year
+//                   ,newPatient->exportDate.day, newPatient->exportDate.month, newPatient->exportDate.year);
     return newPatient;
 }
 
 
-List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength){
+List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, HashTable** diseaseHashTable, HashTable** countryHashTable){
     char *buffer = malloc(sizeof(char)*maxStrLength);
     PatientCase *newPatient;
     Node* newNode;
@@ -132,10 +128,14 @@ List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength){
         newNode = nodeInit(newPatient);
         if(patientList == NULL){
             patientList = linkedListInit(newNode);
-        } else{
+        }else{
             push(newNode, patientList);
         }
+        hashPut(*diseaseHashTable, newPatient->caseNum, newPatient->virus);
+        hashPut(*countryHashTable, newPatient->caseNum, newPatient->country);
     }
+
+    printList(patientList);
 
     return patientList;
 }

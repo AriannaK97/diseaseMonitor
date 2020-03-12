@@ -1,6 +1,6 @@
-OBJS	=	main.o	list_lib.o	data_io.o
-SOURCE	=	main.c	list_lib.c	data_io.c
-HEADER	=	list_lib.h	data_io.h
+OBJS	=	main.o	list_lib.o	data_io.o   hashTable.o
+SOURCE	=	main.c	list_lib.c	data_io.c   hashTable.c
+HEADER	=	list_lib.h	data_io.h   hashTable.h
 OUT	=	myexe
 CC	=	gcc
 FLAGS   =	-Wall	-g	-c	-std=c99
@@ -16,6 +16,9 @@ myList.o:   list_lib.c
 
 myStructs.o:    data_io.c
 	$(CC)	$(FLAGS)	myStructs.c
+
+myStructs.o:    hashTable.c
+	$(CC)	$(FLAGS)	hashTable.c
 
 clean:
 	rm	-f	$(OBJS)	$(OUT)
