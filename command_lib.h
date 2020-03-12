@@ -13,5 +13,6 @@ void insertPatientRecord();
 void recordPatientDateExit();
 void numCurrentPatients();
 void exitMonitor();
+void helpDesc();
 
 #endif //DISEASEMONITOR_COMMAND_LIB_H

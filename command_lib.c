@@ -8,8 +8,8 @@
 
 /**
  * For every disease, print the number of the diseased people monitored in the system.
- * If [date1, date2] are defined we get the number of diseases monitored during the period
- * defined form the given dates.
+ * If [date1, date2] are defined we get the number of diseases monitored during the
+ * period defined form the given dates.
  * Cmd Args: [date1, date2]
  * */
 void globalDiseaseStats(){
@@ -17,9 +17,10 @@ void globalDiseaseStats(){
 }
 
 /**
- * If the argument [country] is not define, the application prints for the virusName defined the number of
- * the diseased monitored in the system during the specified period between [date1, date2]. If [country] is
- * defined, the application prints the number of the diseased in this [country] for the specified period.
+ * If the argument [country] is not define, the application prints for the virusName
+ * defined the number of the diseased monitored in the system during the specified
+ * period between [date1, date2]. If [country] is defined, the application prints
+ * the number of the diseased in this [country] for the specified period.
  * Cmd Args: virusName [country] date1 date2
  * */
 void diseaseFrequency(){
@@ -28,8 +29,8 @@ void diseaseFrequency(){
 
 
 /**
- * For the specified country the application prints the diseases with the top k number of diseased cases
- * during the period [date1, date2], if that is specified.
+ * For the specified country the application prints the diseases with the top k
+ * number of diseased cases during the period [date1, date2], if that is specified.
  * Cmd Args: k country [date1, date2]
  * */
 void topk_Diseases(){
@@ -62,9 +63,10 @@ void recordPatientDateExit(){
 }
 
 /**
- * If the argument [disease] is given, the application prints the number of the patients hospitalised with the
- * specified disease. If the [disease] is not specified the application prints for all the diseases in the system
- * the records of all the patients that are still hospitalised.
+ * If the argument [disease] is given, the application prints the number of the
+ * patients hospitalised with the specified disease. If the [disease] is not specified
+ * the application prints for all the diseases in the system the records of all the
+ * patients that are still hospitalised.
  * Cmd Args: [disease]
  * */
 void numCurrentPatients(){
@@ -75,6 +77,13 @@ void numCurrentPatients(){
  * Exit from the application - Memory dialloccation
  * */
 void exitMonitor(){
+    exit(0);
+}
+
+/**
+ * Help desc for all the actions of the application and how to call them.
+ * */
+void helpDesc(){
 
 }
 
