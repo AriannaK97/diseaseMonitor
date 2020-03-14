@@ -8,10 +8,11 @@
 #include "list_lib.h"
 #include "hashTable.h"
 
+#define BUCKET_SIZE 68 //minimum bucket size for just one entry
 
 int main(int argc, char** argv) {
 
-    size_t bucketSize;
+    size_t bucketSize = BUCKET_SIZE;
     int diseaseHashtableNumOfEntries = 10;
     int countryHashTableNumOfEntries = 4;
     char *inputFile = NULL;
@@ -32,8 +33,10 @@ int main(int argc, char** argv) {
             countryHashTableNumOfEntries = atoi(argv[i + 1]);
             numOfArgs += 2;
         } else if (strcmp(argv[i], "-b") == 0) {
-            bucketSize = atoi(argv[i + 1]);
-            numOfArgs += 2;
+            if(argv[i] >= BUCKET_SIZE){
+                bucketSize = atoi(argv[i + 1]);
+                numOfArgs += 2;
+            }
         } else {
             fprintf(stderr, "Unknown option %s\n", argv[i]);
             exit(1);
@@ -62,7 +65,7 @@ int main(int argc, char** argv) {
     diseaseHashTable = hashCreate(diseaseHashtableNumOfEntries);
     countryHashTable = hashCreate(countryHashTableNumOfEntries);
 
-    patientList = read_input_file(patientRecordsFile, lineLenght, &diseaseHashTable, &countryHashTable);
+    patientList = read_input_file(patientRecordsFile, lineLenght, &diseaseHashTable, &countryHashTable, bucketSize);
 
     return 0;
 }

@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "hashTable.h"
 
 
@@ -25,7 +26,7 @@ HashTable* hashCreate(unsigned int capacity){
     if(!hTable){
         return NULL;
     }
-    if((hTable->table = malloc(capacity*sizeof(HashItem*))) == NULL){
+    if((hTable->table = malloc(capacity*sizeof(Bucket*))) == NULL){
         free(hTable->table);
         return NULL;
     }
@@ -38,42 +39,112 @@ HashTable* hashCreate(unsigned int capacity){
     return hTable;
 }
 
+bool bucketHasSpace(Bucket *bucket){
+    //the new data can fit in the existing bucket
+    int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
+    int entries = freeSpace/DATA_SPACE;
+    if(entries > bucket->numOfEntries){
+        return true;
+    }else{
+        return false;
+    }
+}
+
+/**
+ * When the previous bucket is full and only.
+ * */
+Bucket* getBucket(size_t bucketSize, Bucket *prevBucket){
+    Bucket *e;
+    if((e = malloc(sizeof(Bucket))) == NULL){
+        //return hashERROR;
+        return NULL;
+    }
+    e->bucketSize = prevBucket->bucketSize;
+    prevBucket->next = e;
+    e->next = NULL;
+
+    return e;
+}
+
+
 /**
  * Store data in the hashtable. If data with the same key are already stored,
  * they are overwritten, and return by the function. Else it return NULL.
  * Return hashERROR if there are memory alloc error
  */
-void* hashPut(HashTable* hTable, unsigned long key, void* data){
+void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSize){
     if(data == NULL){
         return NULL;
     }
     unsigned int h = hash(key) % hTable->capacity;
-    HashItem* e = hTable->table[h];
+    Bucket* bucket = hTable->table[h];
 
-    while(e != NULL){
-        if(e->key == key){
-            void* ret = e->data;
-            e->data = data;
-            return ret;
-        }
-        e = e->next;
+    if(bucket != NULL){
+        putInBucketData(bucket, bucketSize, data, hTable, key);
+        return NULL;
     }
 
     // Getting here means the key doesn't already exist
 
-    if((e = malloc(sizeof(HashItem)+ sizeof(unsigned long)+1)) == NULL){
+    if((bucket = malloc(sizeof(Bucket))) == NULL){
         //return hashERROR;
         return NULL;
     }
-    e->key = key;
-    e->data = data;
+    bucket->key = key;
+    bucket->bucketSize = bucketSize;
+    int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
+    int entries = freeSpace/DATA_SPACE;
+    bucket->entry = malloc(entries * sizeof(BucketEntry));
+    for(int i = 0; i < entries; i++){
+        bucket->entry[i].data = malloc(DATA_SPACE* sizeof(char));
+    }
+    memcpy(bucket->entry[0].data, data, DATA_SPACE);
+    bucket->numOfEntries++;
 
     // Add the element at the beginning of the linked list
-    e->next = hTable->table[h];
-    hTable->table[h] = e;
+    bucket->next = hTable->table[h];
+    hTable->table[h] = bucket;
     hTable->e_num ++;
 
     return NULL;
+}
+
+/**
+ * either the virus or the country occupy 32bytes
+ * */
+void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* hTable, unsigned long key){
+
+    while (bucket != NULL){
+        if(bucket->key == key){
+            for(int i = 0; i < bucket->numOfEntries; i++){
+                if (strcmp(data, bucket->entry[i].data)==0)
+                    return;
+            }
+            if(bucket->next == NULL){   //we have the final bucket of the list and have not found any matches previously
+                if(bucketHasSpace(bucket)){
+                    memcpy(bucket->entry[bucket->numOfEntries].data, data, DATA_SPACE);
+                    bucket->numOfEntries++;
+                    hTable->e_num ++;
+                    return;
+                } else{
+                    bucket = getBucket(bucketSize, bucket);
+                    bucket->key = key;
+                    int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
+                    int entries = freeSpace/DATA_SPACE;
+                    bucket->entry = malloc(entries * sizeof(BucketEntry));
+                    for(int i = 0; i < entries; i++){
+                        bucket->entry[i].data = malloc(DATA_SPACE* sizeof(char));
+                    }
+                    memcpy(bucket->entry[0].data, data, DATA_SPACE);
+                    bucket->numOfEntries++;
+                    hTable->e_num ++;
+                    return;
+                }
+            }
+        }
+        bucket = bucket->next;
+    }
+    return;
 }
 
 /**
@@ -81,10 +152,10 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data){
  */
 void* hashGet(HashTable* hTable, unsigned long key){
     unsigned int h = hash(key) % hTable->capacity;
-    HashItem* e = hTable->table[h];
+    Bucket* e = hTable->table[h];
     while(e != NULL){
         if(e->key == key) //cover collision cases
-            return e->data;
+            return e->entry->data;
         e = e->next;
     }
     return NULL;
@@ -96,11 +167,11 @@ void* hashGet(HashTable* hTable, unsigned long key){
  **/
 void* hashRemove(HashTable* hTable, unsigned long key){
     unsigned int h = hash(key) % hTable->capacity;
-    HashItem* e = hTable->table[h];
-    HashItem* prev = NULL;
+    Bucket* e = hTable->table[h];
+    Bucket* prev = NULL;
     while(e != NULL){
         if(e->key == key){
-            void* ret = e->data;
+            void* ret = e->entry->data;
             if(prev != NULL)
                 prev->next = e->next;
             else
@@ -127,7 +198,7 @@ void hashListKeys(HashTable* hTable, unsigned long* k, size_t len){
     unsigned int i = hTable->capacity;
     while(--i >= 0)
     {
-        HashItem* e = hTable->table[i];
+        Bucket* e = hTable->table[i];
         while(e)
         {
             k[ki++] = e->key;
@@ -145,18 +216,28 @@ void hashListValues(HashTable* hTable, void** v, size_t len){
     int vi = 0; //Index to the current string in **v
     unsigned int i = hTable->capacity;
     while(--i >= 0){
-        HashItem* e = hTable->table[i];
+        Bucket* e = hTable->table[i];
         while(e){
-            v[vi++] = e->data;
+            v[vi++] = e->entry->data;
             e = e->next;
         }
     }
 }
 
+
+void iterateBucketData(Bucket* bucket){
+    BucketEntry *iterator = bucket->entry;
+
+    for(int i = 0; i < bucket->numOfEntries; i++){
+        printf("%s\n",iterator[i].data);
+    }
+}
+
+
 /**
  * Iterate through table's elements.
  */
-HashItem* hashIterate(HashElement* iterator){
+Bucket* hashIterate(HashElement* iterator){
     while(iterator->elem == NULL){
         if(iterator->index < iterator->ht->capacity - 1){
             iterator->index++;
@@ -166,16 +247,17 @@ HashItem* hashIterate(HashElement* iterator){
             return NULL;
         }
     }
-    HashItem* e = iterator->elem;
-    if(e){
-        iterator->elem = e->next;
+    Bucket* bucket = iterator->elem;
+    if(bucket){
+        iterateBucketData(bucket);
+        iterator->elem = bucket->next;
     }
-    return e;
+    return bucket;
 }
 
 /* Iterate through keys. */
 unsigned long hashIterateKeys(HashElement* iterator){
-    HashItem* e = hashIterate(iterator);
+    Bucket* e = hashIterate(iterator);
     if (e == NULL){
         return NULL;
     }else{
@@ -187,8 +269,8 @@ unsigned long hashIterateKeys(HashElement* iterator){
  * Iterate through values.
  */
 void* hashIterateValues(HashElement* iterator){
-    HashItem* e = hashIterate(iterator);
-    return (e == NULL ? NULL : e->data);
+    Bucket* e = hashIterate(iterator);
+    return (e == NULL ? NULL : e->entry->data);
 }
 
 /**
@@ -211,4 +293,15 @@ void hashDestroy(HashTable* hTable){
     hashClear(hTable, 1); // Delete and free all.
     free(hTable->table);
     free(hTable);
+}
+
+
+void printHashTable(HashTable* hTable){
+    HashElement *iterator = malloc(sizeof(HashElement));
+    iterator->ht = hTable;
+    iterator->index = 0;
+    iterator->elem = NULL;
+    char *data = malloc(DATA_SPACE*sizeof(char));
+
+    while((data = hashIterateValues(iterator)) != NULL);
 }

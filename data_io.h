@@ -11,6 +11,8 @@
 #include "list_lib.h"
 #include "hashTable.h"
 
+#define DATA_SPACE 32
+
 struct Date{
     int day;
     int month;
@@ -19,10 +21,14 @@ struct Date{
 
 typedef struct PatientCase{
     int caseNum;
-    char name[32];
-    char surname[32];
-    char virus[32];
-    char country[32];
+//    char name[32];
+//    char surname[32];
+//    char virus[32];
+//    char country[32];
+    char* name;
+    char* surname;
+    char* virus;
+    char* country;
     struct Date importDate;
     struct Date exportDate;
 }PatientCase;
@@ -35,7 +41,7 @@ enum {
 FILE* openFile(char *inputFile);
 int getMaxFromFile(FILE* patientRecordsFile, int returnVal);
 
-List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength,
-        HashTable** diseaseHashTable, HashTable** countryHashTable);
+List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, HashTable** diseaseHashTable,
+                      HashTable** countryHashTable, size_t bucketSize);
 
 #endif //DISEASEMONITOR_DATA_IO_H

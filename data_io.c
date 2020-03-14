@@ -117,7 +117,8 @@ PatientCase* getPatient(char* buffer){
 }
 
 
-List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, HashTable** diseaseHashTable, HashTable** countryHashTable){
+List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, HashTable** diseaseHashTable,
+                        HashTable** countryHashTable, size_t bucketSize){
     char *buffer = malloc(sizeof(char)*maxStrLength);
     PatientCase *newPatient;
     Node* newNode;
@@ -131,11 +132,13 @@ List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, HashTable**
         }else{
             push(newNode, patientList);
         }
-        hashPut(*diseaseHashTable, newPatient->caseNum, newPatient->virus);
-        hashPut(*countryHashTable, newPatient->caseNum, newPatient->country);
-    }
+        hashPut(*diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize);
+        hashPut(*countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize);
 
-    printList(patientList);
+    }
+    printHashTable(*diseaseHashTable);
+    printHashTable(*countryHashTable);
+    //printList(patientList);
 
     return patientList;
 }
