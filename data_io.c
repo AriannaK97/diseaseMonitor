@@ -68,15 +68,19 @@ PatientCase* getPatient(char* buffer){
             newPatient->caseNum = atoi(token);
             token = strtok(NULL, delim);
         } else if (tokenCase == 1){
+            newPatient->name = malloc(DATA_SPACE*sizeof(char));
             strcpy(newPatient->name, token);
             token = strtok(NULL, delim);
         }else if (tokenCase == 2){
+            newPatient->surname = malloc(DATA_SPACE*sizeof(char));
             strcpy(newPatient->surname, token);
             token = strtok(NULL, delim);
         }else if (tokenCase == 3){
+            newPatient->virus = malloc(DATA_SPACE*sizeof(char));
             strcpy(newPatient->virus, token);
             token = strtok(NULL, delim);
         }else if (tokenCase == 4){
+            newPatient->country = malloc(DATA_SPACE*sizeof(char));
             strcpy(newPatient->country, token);
             token = strtok(NULL, dateDelim);
         }else if (tokenCase == 5){
@@ -138,7 +142,7 @@ List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, HashTable**
     }
     printHashTable(*diseaseHashTable);
     printHashTable(*countryHashTable);
-    //printList(patientList);
+    printList(patientList);
 
     return patientList;
 }

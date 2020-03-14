@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-//#define DATA_SPACE 32
+#define DATA_SPACE 32
 
 typedef struct BucketEntry{
     char* data;

@@ -11,7 +11,7 @@
 #include "list_lib.h"
 #include "hashTable.h"
 
-#define DATA_SPACE 32
+//#define DATA_SPACE 32
 
 struct Date{
     int day;
@@ -21,10 +21,6 @@ struct Date{
 
 typedef struct PatientCase{
     int caseNum;
-//    char name[32];
-//    char surname[32];
-//    char virus[32];
-//    char country[32];
     char* name;
     char* surname;
     char* virus;
