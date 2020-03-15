@@ -2,7 +2,7 @@
 // Created by AriannaK97 on 10/3/20.
 //
 #include "list_lib.h"
-#include "data_io.h"
+
 
 Node* nodeInit(void* item){
 
@@ -53,6 +53,26 @@ Node* popNode(List* linkedList){
     return node;
 }
 
+bool compareListItemPatient(PatientCase* patient, int key){
+    if (patient->caseNum == key){
+        return true;
+    }
+    return false;
+}
+
+bool searchListForDuplicates(List* linkedList, int key){
+    Node* node = linkedList->head;
+    while (node != NULL){
+        if (compareListItemPatient(node->item, key)){
+            fprintf(stderr, "System stopped due to input error.\nThe recordID already exists in the system.\n Exit...\n");
+            exit(1);
+        }
+        node = node->next;
+    }
+    return false;
+
+}
+
 void printList(List* patientList){
     PatientCase *newPatient;
     Node* newNode;
@@ -61,7 +81,20 @@ void printList(List* patientList){
         newPatient = newNode->item;
         fprintf(stdout,"case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
                        "exportDate: %d-%d-%d\n", newPatient->caseNum, newPatient->name, newPatient->surname, newPatient->virus,
-                newPatient->country, newPatient->importDate.day, newPatient->importDate.month, newPatient->importDate.year
-                ,newPatient->exportDate.day, newPatient->exportDate.month, newPatient->exportDate.year);
+                newPatient->country, newPatient->entryDate->day, newPatient->entryDate->month, newPatient->entryDate->year
+                ,newPatient->exitDate->day, newPatient->exitDate->month, newPatient->exitDate->year);
     }
+}
+
+/**
+ * List memory deallocation
+ * */
+void listClear(List* linkedList){
+    Node* node = linkedList->head;
+    while (node != NULL){
+        linkedList->head = linkedList->head->next;
+        free(node);
+        node = linkedList->head;
+    }
+    free(linkedList);
 }

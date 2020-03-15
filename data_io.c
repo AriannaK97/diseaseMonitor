@@ -1,7 +1,9 @@
 //
 // Created by AriannaK97 on 9/3/20.
 //
+
 #include "data_io.h"
+
 
 FILE* openFile(char *inputFile){
     FILE *patientRecordsFile;
@@ -14,7 +16,7 @@ FILE* openFile(char *inputFile){
         exit(1);
     } else {
 
-        fprintf(stdout, "Files %s was succesfully opened.\n", inputFile);
+        fprintf(stdout, "File %s was succesfully opened.\n", inputFile);
     }
     return patientRecordsFile;
 }
@@ -61,6 +63,8 @@ PatientCase* getPatient(char* buffer){
     int tokenCase = 0;
     char* token = NULL;
     PatientCase *newPatient = malloc(sizeof(struct PatientCase));
+    newPatient->entryDate = malloc(sizeof(struct Date));
+    newPatient->exitDate = malloc(sizeof(struct Date));
 
     token = strtok(buffer, delim);
     while(tokenCase != 12 && token != NULL){
@@ -84,30 +88,36 @@ PatientCase* getPatient(char* buffer){
             strcpy(newPatient->country, token);
             token = strtok(NULL, dateDelim);
         }else if (tokenCase == 5){
-            newPatient->importDate.day = atoi(token);
+            newPatient->entryDate->day = atoi(token);
             token = strtok(NULL, dateDelim);
         }else if (tokenCase == 6){
-            newPatient->importDate.month = atoi(token);
+            newPatient->entryDate->month = atoi(token);
             token = strtok(NULL, dateDelim);
         }else if (tokenCase == 7){
-            newPatient->importDate.year = atoi(token);
+            newPatient->entryDate->year = atoi(token);
             token = strtok(NULL, dateDelim);
             /*if there is no next token for the export date we infer that there is no such
              * and assign the arbitrary value -1*/
             if(token == NULL){
-                newPatient->exportDate.day = 0;
-                newPatient->exportDate.month = 0;
-                newPatient->exportDate.year = 0;
+                newPatient->exitDate->day = 0;
+                newPatient->exitDate->month = 0;
+                newPatient->exitDate->year = 0;
                 tokenCase = 9;
             }
         }else if (tokenCase == 8){
-            newPatient->exportDate.day = atoi(token);
+            newPatient->exitDate->day = atoi(token);
             token = strtok(NULL, dateDelim);
         }else if (tokenCase == 9){
-            newPatient->exportDate.month = atoi(token);
+            newPatient->exitDate->month = atoi(token);
             token = strtok(NULL, dateDelim);
         }else if (tokenCase == 10){
-            newPatient->exportDate.year = atoi(token);
+            newPatient->exitDate->year = atoi(token);
+            if(!dateInputValidation(newPatient->entryDate, newPatient->exitDate)){
+                fprintf(stderr, "New record discarded\n Invalid importDate: %d-%d-%d | exportDate: %d-%d-%d\n",
+                        newPatient->entryDate->day, newPatient->entryDate->month, newPatient->entryDate->year,
+                        newPatient->exitDate->day, newPatient->exitDate->month, newPatient->exitDate->year);
+                exit(1); //TODO: the program should not exit but return to waiting situation for a new command
+            }
             token = strtok(NULL, dateDelim);
         }
         tokenCase++;
@@ -133,16 +143,29 @@ List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, HashTable**
         newNode = nodeInit(newPatient);
         if(patientList == NULL){
             patientList = linkedListInit(newNode);
-        }else{
+        }else if(!searchListForDuplicates(patientList, newPatient->caseNum)){
             push(newNode, patientList);
         }
-        hashPut(*diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize);
-        hashPut(*countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize);
+        hashPut(*diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize, newNode);
+        hashPut(*countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize, newNode);
 
     }
     printHashTable(*diseaseHashTable);
     printHashTable(*countryHashTable);
-    printList(patientList);
+    //printList(patientList);
 
     return patientList;
+}
+
+
+bool dateInputValidation(Date* entryDate, Date* exitDate){
+    if (entryDate->day == exitDate->day && entryDate->month == exitDate->month && entryDate->year < exitDate->year)
+        return true;
+    if (entryDate->day == exitDate->day && entryDate->month < exitDate->month && entryDate->year <= exitDate->year)
+        return true;
+    if ((entryDate->day < exitDate->day ||  entryDate->day >= exitDate->day) &&
+        (entryDate->month <= exitDate->month || entryDate->month > exitDate->month) &&
+        entryDate->year <= exitDate->year)
+        return true;
+    return false;
 }

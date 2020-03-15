@@ -1,12 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
-#include <unistd.h>
-#include <stdbool.h>
 #include "data_io.h"
-#include "list_lib.h"
-#include "hashTable.h"
 
 #define BUCKET_SIZE 68 //minimum bucket size for just one entry
 
@@ -17,7 +12,6 @@ int main(int argc, char** argv) {
     int countryHashTableNumOfEntries = 4;
     char *inputFile = NULL;
     int numOfArgs = 0;
-
 
 /*****************************************************************************
  *                       Handling command line arguments                     *
@@ -33,9 +27,12 @@ int main(int argc, char** argv) {
             countryHashTableNumOfEntries = atoi(argv[i + 1]);
             numOfArgs += 2;
         } else if (strcmp(argv[i], "-b") == 0) {
-            if(argv[i] >= BUCKET_SIZE){
+            if(atoi(argv[i + 1]) >= BUCKET_SIZE){
                 bucketSize = atoi(argv[i + 1]);
                 numOfArgs += 2;
+            }else{
+                fprintf(stderr, "The BUCKET_SIZE you have provided is invalid! Provide a BUCKET_SIZE >= %d\n", BUCKET_SIZE);
+                scanf("%ld" ,&bucketSize);
             }
         } else {
             fprintf(stderr, "Unknown option %s\n", argv[i]);
@@ -46,21 +43,17 @@ int main(int argc, char** argv) {
         fprintf(stdout, "Default file patientRecordsFile loaded...\n");
     }
 
-
-
 /*****************************************************************************
  *                       Handling input files                                *
  *****************************************************************************/
     FILE *patientRecordsFile;
     patientRecordsFile = openFile(inputFile);
     size_t lineLenght;
-    size_t BUFFERSIZE;
     List* patientList;
     HashTable* diseaseHashTable;
     HashTable* countryHashTable;
 
     lineLenght = getMaxFromFile(patientRecordsFile, LINE_LENGTH);
-    //BUFFERSIZE = getMaxFromFile(patientRecordsFile, BUFFER_SIZE);
 
     diseaseHashTable = hashCreate(diseaseHashtableNumOfEntries);
     countryHashTable = hashCreate(countryHashTableNumOfEntries);

@@ -4,11 +4,6 @@
 
 #include "hashTable.h"
 
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include "hashTable.h"
-
 
 unsigned long hash(unsigned long x){
     x = ((x >> 16) ^ x) * 0x45d9f3b;
@@ -56,7 +51,6 @@ bool bucketHasSpace(Bucket *bucket){
 Bucket* getBucket(size_t bucketSize, Bucket *prevBucket){
     Bucket *e;
     if((e = malloc(sizeof(Bucket))) == NULL){
-        //return hashERROR;
         return NULL;
     }
     e->bucketSize = prevBucket->bucketSize;
@@ -72,7 +66,7 @@ Bucket* getBucket(size_t bucketSize, Bucket *prevBucket){
  * they are overwritten, and return by the function. Else it return NULL.
  * Return hashERROR if there are memory alloc error
  */
-void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSize){
+void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSize, Node* listNode){
     if(data == NULL){
         return NULL;
     }
@@ -80,7 +74,7 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
     Bucket* bucket = hTable->table[h];
 
     if(bucket != NULL){
-        putInBucketData(bucket, bucketSize, data, hTable, key);
+        putInBucketData(bucket, bucketSize, data, hTable, key, listNode);
         return NULL;
     }
 
@@ -101,6 +95,11 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
     memcpy(bucket->entry[0].data, data, DATA_SPACE);
     bucket->numOfEntries++;
 
+    //create the rbtree for the new entry
+    bucket->entry->tree = createRbTree();
+    rbNode* treeNode = createRbTreeNode(listNode);
+    rbInsert(bucket->entry->tree, treeNode);
+
     // Add the element at the beginning of the linked list
     bucket->next = hTable->table[h];
     hTable->table[h] = bucket;
@@ -112,19 +111,30 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
 /**
  * either the virus or the country occupy 32bytes
  * */
-void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* hTable, unsigned long key){
+void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* hTable, unsigned long key, Node* listNode){
 
     while (bucket != NULL){
         if(bucket->key == key){
             for(int i = 0; i < bucket->numOfEntries; i++){
-                if (strcmp(data, bucket->entry[i].data)==0)
+                if (strcmp(data, bucket->entry[i].data)==0){
+                    rbNode* treeNode = createRbTreeNode(listNode);
+                    rbInsert(bucket->entry->tree, treeNode);
                     return;
+                }
             }
-            if(bucket->next == NULL){   //we have the final bucket of the list and have not found any matches previously
+
+            //we have the final bucket of the list and have not found any matches previously
+            if(bucket->next == NULL){
                 if(bucketHasSpace(bucket)){
                     memcpy(bucket->entry[bucket->numOfEntries].data, data, DATA_SPACE);
                     bucket->numOfEntries++;
                     hTable->e_num ++;
+
+                    //create the rbtree for the new entry
+                    bucket->entry->tree = createRbTree();
+                    rbNode* treeNode = createRbTreeNode(listNode);
+                    rbInsert(bucket->entry->tree, treeNode);
+
                     return;
                 } else{
                     bucket = getBucket(bucketSize, bucket);
@@ -138,13 +148,18 @@ void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* h
                     memcpy(bucket->entry[0].data, data, DATA_SPACE);
                     bucket->numOfEntries++;
                     hTable->e_num ++;
+
+                    //create the rbtree for the new entry
+                    bucket->entry->tree = createRbTree();
+                    rbNode* treeNode = createRbTreeNode(listNode);
+                    rbInsert(bucket->entry->tree, treeNode);
+
                     return;
                 }
             }
         }
         bucket = bucket->next;
     }
-    return;
 }
 
 /**
@@ -258,11 +273,7 @@ Bucket* hashIterate(HashElement* iterator){
 /* Iterate through keys. */
 unsigned long hashIterateKeys(HashElement* iterator){
     Bucket* e = hashIterate(iterator);
-    if (e == NULL){
-        return NULL;
-    }else{
-        return e->key;
-    }
+    return (e == NULL ? NULL : e->key);
 }
 
 /**

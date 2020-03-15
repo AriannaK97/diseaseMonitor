@@ -10,26 +10,10 @@
 #include <string.h>
 #include "list_lib.h"
 #include "hashTable.h"
+#include "structs.h"
 
-//#define DATA_SPACE 32
 
-struct Date{
-    int day;
-    int month;
-    int year;
-};
-
-typedef struct PatientCase{
-    int caseNum;
-    char* name;
-    char* surname;
-    char* virus;
-    char* country;
-    struct Date importDate;
-    struct Date exportDate;
-}PatientCase;
-
-enum {
+enum defAttribute{
     LINE_LENGTH,
     BUFFER_SIZE,
 };
@@ -39,5 +23,7 @@ int getMaxFromFile(FILE* patientRecordsFile, int returnVal);
 
 List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, HashTable** diseaseHashTable,
                       HashTable** countryHashTable, size_t bucketSize);
+
+bool dateInputValidation(Date* entryDate, Date* exitDate);
 
 #endif //DISEASEMONITOR_DATA_IO_H
