@@ -27,6 +27,7 @@ List* linkedListInit(Node* node);
 void push(Node* listNode, List* linkedList);
 void listMemoryDeallock(List* linkedList);
 void printList(List* patientList);
+void printListNode(Node* node);
 bool searchListForDuplicates(List* linkedList, int key);
 void listClear(List* linkedList);
 

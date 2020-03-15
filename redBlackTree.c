@@ -78,7 +78,7 @@ rbTree* createRbTree(){
 
 
 void* getKey(Node* listNode){
-    Date* treeDate = malloc(sizeof(Date));
+    Date* treeDate;
     PatientCase* patient = listNode->item;
     treeDate = patient->entryDate;
     return treeDate;
@@ -163,6 +163,21 @@ void rbInsertFixup(rbTree* tree, rbNode* z){
     tree->root->colour = Black;
 }
 
-void searchRbNode(rbTree* tree){
+rbNode* searchRbNode(rbTree* tree, void* key){
+    /*Check for empty tree*/
+    if(tree->root == tree->nil){
+        return tree->nil;
+    }
 
+    rbNode* treeNode = tree->root;
+    while (treeNode != tree->nil){
+        if(compareDate(treeNode->key, key)){
+            treeNode = treeNode->left;
+        }else if(compareDate(key, treeNode->key)){
+            treeNode = treeNode->right;
+        } else
+            return treeNode;
+    }
+    /*the node with the given key was not found*/
+    return tree->nil;
 }

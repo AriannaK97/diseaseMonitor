@@ -98,3 +98,18 @@ void listClear(List* linkedList){
     }
     free(linkedList);
 }
+
+PatientCase* getPatientFromListNode(Node* node){
+
+}
+
+void printListNode(Node* node){
+    if(node == NULL){
+        return;
+    }
+    PatientCase* patient = node->item;
+    fprintf(stdout,"case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
+                   "exportDate: %d-%d-%d\n", patient->caseNum, patient->name, patient->surname, patient->virus,
+                   patient->country, patient->entryDate->day, patient->entryDate->month, patient->entryDate->year,
+                   patient->exitDate->day, patient->exitDate->month, patient->exitDate->year);
+}

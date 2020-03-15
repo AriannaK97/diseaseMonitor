@@ -35,5 +35,6 @@ void rbInsert(rbTree* tree, rbNode* z);
 void rbInsertFixup(rbTree* tree, rbNode* z);
 void* getKey(Node* listNode);
 bool compareDate(Date* date1, Date* date2);
+rbNode* searchRbNode(rbTree* tree, void* key);
 
 #endif //DISEASEMONITOR_REDBLACKTREE_H

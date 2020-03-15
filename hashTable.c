@@ -243,6 +243,14 @@ void hashListValues(HashTable* hTable, void** v, size_t len){
 void iterateBucketData(Bucket* bucket){
     BucketEntry *iterator = bucket->entry;
 
+    Date searchDate;
+    searchDate.day = 03;
+    searchDate.month = 07;
+    searchDate.year = 2005;
+    rbNode* treeNode = searchRbNode(bucket->entry->tree, &searchDate);
+    if(treeNode != NULL)
+        printListNode(treeNode->listNodeEntry);
+
     for(int i = 0; i < bucket->numOfEntries; i++){
         printf("%s\n",iterator[i].data);
     }
@@ -266,6 +274,7 @@ Bucket* hashIterate(HashElement* iterator){
     if(bucket){
         iterateBucketData(bucket);
         iterator->elem = bucket->next;
+
     }
     return bucket;
 }
