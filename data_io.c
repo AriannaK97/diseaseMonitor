@@ -131,12 +131,16 @@ PatientCase* getPatient(char* buffer){
 }
 
 
-List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, HashTable** diseaseHashTable,
-                        HashTable** countryHashTable, size_t bucketSize){
-    char *buffer = malloc(sizeof(char)*maxStrLength);
+CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int diseaseHashtableNumOfEntries,
+                            int countryHashTableNumOfEntries, size_t bucketSize){
+    char* buffer = malloc(sizeof(char)*maxStrLength);
+    CmdManager* cmdManager = malloc(sizeof(struct CmdManager));
     PatientCase *newPatient;
     Node* newNode;
     List* patientList = NULL;
+
+    HashTable* diseaseHashTable = hashCreate(diseaseHashtableNumOfEntries);
+    HashTable* countryHashTable = hashCreate(countryHashTableNumOfEntries);
 
     while(getline(&buffer, &maxStrLength, patientRecordsFile) >= 0){
         newPatient = getPatient(buffer);
@@ -146,15 +150,19 @@ List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, HashTable**
         }else if(!searchListForDuplicates(patientList, newPatient->caseNum)){
             push(newNode, patientList);
         }
-        hashPut(*diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize, newNode);
-        hashPut(*countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize, newNode);
+        hashPut(diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize, newNode);
+        hashPut(countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize, newNode);
 
     }
-    printHashTable(*diseaseHashTable);
-    printHashTable(*countryHashTable);
-    //printList(patientList);
 
-    return patientList;
+    /**
+     * Put the needed structures to command manager
+     * */
+    cmdManager->patientList = patientList;
+    cmdManager->countryHashTable = countryHashTable;
+    cmdManager->diseaseHashTable = diseaseHashTable;
+
+    return cmdManager;
 }
 
 

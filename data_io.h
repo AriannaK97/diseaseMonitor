@@ -21,8 +21,8 @@ enum defAttribute{
 FILE* openFile(char *inputFile);
 int getMaxFromFile(FILE* patientRecordsFile, int returnVal);
 
-List* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, HashTable** diseaseHashTable,
-                      HashTable** countryHashTable, size_t bucketSize);
+CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int diseaseHashtableNumOfEntries,
+                            int countryHashTableNumOfEntries, size_t bucketSize);
 
 bool dateInputValidation(Date* entryDate, Date* exitDate);
 

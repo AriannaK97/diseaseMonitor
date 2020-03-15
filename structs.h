@@ -36,4 +36,10 @@ typedef struct List{
     struct Node* tail;
 }List;
 
+typedef struct CmdManager{
+    struct List* patientList;
+    struct HashTable* diseaseHashTable;
+    struct HashTable* countryHashTable;
+}CmdManager;
+
 #endif //DISEASEMONITOR_STRUCTS_H

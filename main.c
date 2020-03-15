@@ -49,16 +49,19 @@ int main(int argc, char** argv) {
     FILE *patientRecordsFile;
     patientRecordsFile = openFile(inputFile);
     size_t lineLenght;
-    List* patientList;
     HashTable* diseaseHashTable;
     HashTable* countryHashTable;
+    CmdManager* cmdManager;
 
     lineLenght = getMaxFromFile(patientRecordsFile, LINE_LENGTH);
 
-    diseaseHashTable = hashCreate(diseaseHashtableNumOfEntries);
-    countryHashTable = hashCreate(countryHashTableNumOfEntries);
+/*    diseaseHashTable = hashCreate(diseaseHashtableNumOfEntries);
+    countryHashTable = hashCreate(countryHashTableNumOfEntries);*/
 
-    patientList = read_input_file(patientRecordsFile, lineLenght, &diseaseHashTable, &countryHashTable, bucketSize);
+    cmdManager = read_input_file(patientRecordsFile, lineLenght, diseaseHashtableNumOfEntries, countryHashTableNumOfEntries, bucketSize);
+    printList(cmdManager->patientList);
+    printHashTable(cmdManager->diseaseHashTable);
+    printHashTable(cmdManager->countryHashTable);
 
     return 0;
 }
