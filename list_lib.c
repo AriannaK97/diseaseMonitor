@@ -6,7 +6,7 @@
 
 Node* nodeInit(void* item){
 
-    Node* newNode =  malloc(sizeof(Node));
+    Node* newNode =  (struct Node*)malloc(sizeof(Node));
 
     newNode->item = item;
     newNode->next = NULL;
@@ -15,7 +15,7 @@ Node* nodeInit(void* item){
 }
 
 List* linkedListInit(Node* node){
-    List* newList = malloc(sizeof(List));
+    List* newList = (struct List*)malloc(sizeof(List));
     newList->head = node;
     newList->tail = node;
     return newList;
@@ -32,7 +32,9 @@ void push(Node* listNode, List* linkedList){
     }
 }
 
-
+/**
+ * List memory deallocation
+ * */
 void listMemoryDeallock(List* linkedList){
     Node* listNode = linkedList->head;
     while(listNode != NULL){
@@ -60,6 +62,10 @@ bool compareListItemPatient(PatientCase* patient, int key){
     return false;
 }
 
+/**
+ * Search for duplicates in list
+ * Used for new entry validation
+ * */
 bool searchListForDuplicates(List* linkedList, int key){
     Node* node = linkedList->head;
     while (node != NULL){
@@ -73,36 +79,26 @@ bool searchListForDuplicates(List* linkedList, int key){
 
 }
 
+/**
+ * Print list
+ * */
 void printList(List* patientList){
-    PatientCase *newPatient;
-    Node* newNode;
-    while (patientList->head != NULL){
-        newNode = popNode(patientList);
-        newPatient = newNode->item;
+    PatientCase* newPatient;
+    Node* newNode = patientList->head;
+    while (newNode != NULL){
+        newPatient = (PatientCase*)newNode->item;
         fprintf(stdout,"case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
                        "exportDate: %d-%d-%d\n", newPatient->caseNum, newPatient->name, newPatient->surname, newPatient->virus,
                 newPatient->country, newPatient->entryDate->day, newPatient->entryDate->month, newPatient->entryDate->year
                 ,newPatient->exitDate->day, newPatient->exitDate->month, newPatient->exitDate->year);
+
+        newNode = newNode->next;
     }
 }
 
 /**
- * List memory deallocation
+ * Print a certain given node of type Node
  * */
-void listClear(List* linkedList){
-    Node* node = linkedList->head;
-    while (node != NULL){
-        linkedList->head = linkedList->head->next;
-        free(node);
-        node = linkedList->head;
-    }
-    free(linkedList);
-}
-
-PatientCase* getPatientFromListNode(Node* node){
-
-}
-
 void printListNode(Node* node){
     if(node == NULL){
         return;

@@ -4,7 +4,6 @@
 
 #include "data_io.h"
 
-
 FILE* openFile(char *inputFile){
     FILE *patientRecordsFile;
 
@@ -20,6 +19,43 @@ FILE* openFile(char *inputFile){
     }
     return patientRecordsFile;
 }
+
+InputArguments* getInputArgs(int argc, char** argv){
+
+    InputArguments* arguments =  malloc(sizeof(struct InputArguments));
+    int numOfArgs = 0;
+
+    for (int i = 1; i < argc; i += 2) {
+        if (strcmp(argv[i], "-p") == 0) {
+            arguments->inputFile = argv[i + 1];
+            numOfArgs += 2;
+        } else if (strcmp(argv[i], "-h1") == 0) {
+            arguments->diseaseHashtableNumOfEntries = atoi(argv[i + 1]);
+            numOfArgs += 2;
+        } else if (strcmp(argv[i], "-h2") == 0) {
+            arguments->countryHashTableNumOfEntries = atoi(argv[i + 1]);
+            numOfArgs += 2;
+        } else if (strcmp(argv[i], "-b") == 0) {
+            if(atoi(argv[i + 1]) >= BUCKET_SIZE){
+                arguments->bucketSize = atoi(argv[i + 1]);
+                numOfArgs += 2;
+            }else{
+                fprintf(stderr, "The BUCKET_SIZE you have provided is invalid! Provide a BUCKET_SIZE >= %d\n", BUCKET_SIZE);
+                scanf("%ld" ,&arguments->bucketSize);
+            }
+        } else {
+            fprintf(stderr, "Unknown option %s\n", argv[i]);
+            exit(1);
+        }
+    }
+    if (arguments->inputFile == NULL) {
+        fprintf(stdout, "Default file patientRecordsFile loaded...\n");
+    }
+
+    return arguments;
+}
+
+
 
 /***
  * Get the max value of either the longest line in file or the buffersize->max lines in file
@@ -62,9 +98,9 @@ PatientCase* getPatient(char* buffer){
     const char* dateDelim = " -";
     int tokenCase = 0;
     char* token = NULL;
-    PatientCase *newPatient = malloc(sizeof(struct PatientCase));
-    newPatient->entryDate = malloc(sizeof(struct Date));
-    newPatient->exitDate = malloc(sizeof(struct Date));
+    PatientCase *newPatient = (struct PatientCase*)malloc(sizeof(struct PatientCase));
+    newPatient->entryDate = (struct Date*)malloc(sizeof(struct Date));
+    newPatient->exitDate = (struct Date*)malloc(sizeof(struct Date));
 
     token = strtok(buffer, delim);
     while(tokenCase != 12 && token != NULL){
@@ -122,11 +158,7 @@ PatientCase* getPatient(char* buffer){
         }
         tokenCase++;
     }
-    tokenCase = 0;
-//    fprintf(stdout,"case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
-//                   "exportDate: %d-%d-%d\n", newPatient->caseNum, newPatient->name, newPatient->surname, newPatient->virus,
-//                   newPatient->country, newPatient->importDate.day, newPatient->importDate.month, newPatient->importDate.year
-//                   ,newPatient->exportDate.day, newPatient->exportDate.month, newPatient->exportDate.year);
+    //tokenCase = 0;
     return newPatient;
 }
 
@@ -135,16 +167,23 @@ CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int d
                             int countryHashTableNumOfEntries, size_t bucketSize){
     char* buffer = malloc(sizeof(char)*maxStrLength);
     CmdManager* cmdManager = malloc(sizeof(struct CmdManager));
-    PatientCase *newPatient;
+    PatientCase* newPatient;
     Node* newNode;
     List* patientList = NULL;
+    PatientCase* temp;
 
     HashTable* diseaseHashTable = hashCreate(diseaseHashtableNumOfEntries);
     HashTable* countryHashTable = hashCreate(countryHashTableNumOfEntries);
 
     while(getline(&buffer, &maxStrLength, patientRecordsFile) >= 0){
+        //printf("%s\n", buffer);
         newPatient = getPatient(buffer);
         newNode = nodeInit(newPatient);
+        temp = newNode->item;
+        fprintf(stdout,"case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
+                       "exportDate: %d-%d-%d\n", temp->caseNum, temp->name, temp->surname, temp->virus,
+                temp->country, temp->entryDate->day, temp->entryDate->month, temp->entryDate->year
+                ,temp->exitDate->day, temp->exitDate->month, temp->exitDate->year);
         if(patientList == NULL){
             patientList = linkedListInit(newNode);
         }else if(!searchListForDuplicates(patientList, newPatient->caseNum)){

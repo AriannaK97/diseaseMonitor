@@ -11,24 +11,23 @@
 #include "structs.h"
 #include "data_io.h"
 
-/*typedef struct Node{
-    void* item;
-    struct Node* next;
-}Node;
-
-typedef struct List{
-    struct Node* head;
-    struct Node* tail;
-}List;*/
 
 Node* popNode(List* linkedList);
+
 Node* nodeInit(void* item);
+
 List* linkedListInit(Node* node);
+
 void push(Node* listNode, List* linkedList);
+
 void listMemoryDeallock(List* linkedList);
+
 void printList(List* patientList);
+
 void printListNode(Node* node);
+
 bool searchListForDuplicates(List* linkedList, int key);
+
 void listClear(List* linkedList);
 
 #endif //DISEASEMONITOR_LIST_LIB_H

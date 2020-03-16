@@ -12,6 +12,7 @@
 #include "hashTable.h"
 #include "structs.h"
 
+#define BUCKET_SIZE 68              /*minimum bucket size for just one entry*/
 
 enum defAttribute{
     LINE_LENGTH,
@@ -19,6 +20,9 @@ enum defAttribute{
 };
 
 FILE* openFile(char *inputFile);
+
+InputArguments* getInputArgs(int argc, char** argv);
+
 int getMaxFromFile(FILE* patientRecordsFile, int returnVal);
 
 CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int diseaseHashtableNumOfEntries,

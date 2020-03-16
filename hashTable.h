@@ -39,6 +39,7 @@ typedef struct HashElement{
     HashTable* ht; 	// The hashtable on which we iterate
     unsigned int index;	// Current index in the table
     Bucket* elem; 	// Current element in the list
+    int BucketEntry;
 }HashElement;
 
 

@@ -1,67 +1,29 @@
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include "data_io.h"
-
-#define BUCKET_SIZE 68 //minimum bucket size for just one entry
+#include "command_lib.h"
 
 int main(int argc, char** argv) {
 
-    size_t bucketSize = BUCKET_SIZE;
-    int diseaseHashtableNumOfEntries = 10;
-    int countryHashTableNumOfEntries = 4;
-    char *inputFile = NULL;
-    int numOfArgs = 0;
 
 /*****************************************************************************
  *                       Handling command line arguments                     *
  *****************************************************************************/
-    for (int i = 1; i < argc; i += 2) {
-        if (strcmp(argv[i], "-p") == 0) {
-            inputFile = argv[i + 1];
-            numOfArgs += 2;
-        } else if (strcmp(argv[i], "-h1") == 0) {
-            diseaseHashtableNumOfEntries = atoi(argv[i + 1]);
-            numOfArgs += 2;
-        } else if (strcmp(argv[i], "-h2") == 0) {
-            countryHashTableNumOfEntries = atoi(argv[i + 1]);
-            numOfArgs += 2;
-        } else if (strcmp(argv[i], "-b") == 0) {
-            if(atoi(argv[i + 1]) >= BUCKET_SIZE){
-                bucketSize = atoi(argv[i + 1]);
-                numOfArgs += 2;
-            }else{
-                fprintf(stderr, "The BUCKET_SIZE you have provided is invalid! Provide a BUCKET_SIZE >= %d\n", BUCKET_SIZE);
-                scanf("%ld" ,&bucketSize);
-            }
-        } else {
-            fprintf(stderr, "Unknown option %s\n", argv[i]);
-            exit(1);
-        }
-    }
-    if (inputFile == NULL) {
-        fprintf(stdout, "Default file patientRecordsFile loaded...\n");
-    }
-
+    InputArguments* arguments = getInputArgs(argc, argv);
 /*****************************************************************************
  *                       Handling input files                                *
  *****************************************************************************/
     FILE *patientRecordsFile;
-    patientRecordsFile = openFile(inputFile);
-    size_t lineLenght;
-    HashTable* diseaseHashTable;
-    HashTable* countryHashTable;
+    patientRecordsFile = openFile(arguments->inputFile);
     CmdManager* cmdManager;
 
-    lineLenght = getMaxFromFile(patientRecordsFile, LINE_LENGTH);
+    cmdManager = read_input_file(patientRecordsFile, getMaxFromFile(patientRecordsFile, LINE_LENGTH),
+            arguments->diseaseHashtableNumOfEntries,arguments->countryHashTableNumOfEntries, arguments->bucketSize);
 
-/*    diseaseHashTable = hashCreate(diseaseHashtableNumOfEntries);
-    countryHashTable = hashCreate(countryHashTableNumOfEntries);*/
-
-    cmdManager = read_input_file(patientRecordsFile, lineLenght, diseaseHashtableNumOfEntries, countryHashTableNumOfEntries, bucketSize);
     printList(cmdManager->patientList);
     printHashTable(cmdManager->diseaseHashTable);
     printHashTable(cmdManager->countryHashTable);
+
+    commandServer(cmdManager);
 
     return 0;
 }

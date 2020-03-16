@@ -1,5 +1,5 @@
 //
-// Created by linuxuser on 15/3/20.
+// Created by AriannaK97 on 15/3/20.
 //
 
 #ifndef DISEASEMONITOR_STRUCTS_H
@@ -41,5 +41,13 @@ typedef struct CmdManager{
     struct HashTable* diseaseHashTable;
     struct HashTable* countryHashTable;
 }CmdManager;
+
+
+typedef struct InputArguments{
+    size_t bucketSize;
+    int diseaseHashtableNumOfEntries;
+    int countryHashTableNumOfEntries;
+    char *inputFile;
+}InputArguments;
 
 #endif //DISEASEMONITOR_STRUCTS_H
