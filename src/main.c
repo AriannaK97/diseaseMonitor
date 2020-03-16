@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "data_io.h"
-#include "command_lib.h"
+#include "../header/data_io.h"
+#include "../header/command_lib.h"
 
 int main(int argc, char** argv) {
 

@@ -2,7 +2,7 @@
 // Created by AriannaK97 on 9/3/20.
 //
 
-#include "data_io.h"
+#include "../header/data_io.h"
 
 FILE* openFile(char *inputFile){
     FILE *patientRecordsFile;

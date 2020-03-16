@@ -2,12 +2,12 @@
 // Created by AriannaK97 on 12/3/20.
 //
 
-#include "command_lib.h"
+#include "../header/command_lib.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "structs.h"
-#include "hashTable.h"
+#include "../header/structs.h"
+#include "../header/hashTable.h"
 
 /**
  * For every disease, print the number of the diseased people monitored in the system.

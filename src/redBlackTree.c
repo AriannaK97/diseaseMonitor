@@ -1,7 +1,7 @@
 //
 // Created by AriannaK97 on 14/3/20.
 //
-#include "redBlackTree.h"
+#include "../header/redBlackTree.h"
 #include <stdio.h>
 
 void leftRotate(rbTree* tree, rbNode* x){
