@@ -152,7 +152,7 @@ PatientCase* getPatient(char* buffer){
                 fprintf(stderr, "New record discarded\n Invalid importDate: %d-%d-%d | exportDate: %d-%d-%d\n",
                         newPatient->entryDate->day, newPatient->entryDate->month, newPatient->entryDate->year,
                         newPatient->exitDate->day, newPatient->exitDate->month, newPatient->exitDate->year);
-                exit(1); //TODO: the program should not exit but return to waiting situation for a new command
+                exit(1);
             }
             token = strtok(NULL, dateDelim);
         }
@@ -179,11 +179,7 @@ CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int d
         //printf("%s\n", buffer);
         newPatient = getPatient(buffer);
         newNode = nodeInit(newPatient);
-        temp = newNode->item;
-        fprintf(stdout,"case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
-                       "exportDate: %d-%d-%d\n", temp->caseNum, temp->name, temp->surname, temp->virus,
-                temp->country, temp->entryDate->day, temp->entryDate->month, temp->entryDate->year
-                ,temp->exitDate->day, temp->exitDate->month, temp->exitDate->year);
+
         if(patientList == NULL){
             patientList = linkedListInit(newNode);
         }else if(!searchListForDuplicates(patientList, newPatient->caseNum)){
@@ -191,7 +187,6 @@ CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int d
         }
         hashPut(diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize, newNode);
         hashPut(countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize, newNode);
-
     }
 
     /**

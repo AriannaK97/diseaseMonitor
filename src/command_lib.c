@@ -103,7 +103,7 @@ void commandServer(CmdManager* manager){
     putchar('~');
     putchar('$');
     putchar(':');
-    while (getline(&line, &length, stdin)!= EOF){
+    while (getline(&line, &length, stdin) != EOF){
 
         command = strtok(line, "\n");
         if(command == NULL){

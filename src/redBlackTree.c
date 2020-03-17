@@ -3,14 +3,17 @@
 //
 #include "../header/redBlackTree.h"
 #include <stdio.h>
+#include "../header/list_lib.h"
 
 void leftRotate(rbTree* tree, rbNode* x){
     rbNode* y = x->right;
-    x->right = y->right;
-    if(y->left != tree->nil)
-        y->left->parent = x;
+
+    x->right = y->left;
+    if(x->right != tree->nil)
+        x->right->parent = x;
+
     y->parent = x->parent;
-    if(x->parent == tree->nil){
+    if(y->parent == tree->nil){
         tree->root = y;
     }else if(x == x->parent->left){
         x->parent->left = y;
@@ -24,18 +27,18 @@ void leftRotate(rbTree* tree, rbNode* x){
 void rightRotate(rbTree* tree, rbNode* x){
     rbNode* y = x->left;
 
-    x->left = y->left;
-    if(y->right != tree->nil)
-        y->right->parent = x;
+    x->left = y->right;
+    if(x->left != tree->nil)
+        x->left->parent = x;
 
     y->parent = x->parent;
 
-    if(x->parent == tree->nil){
+    if(y->parent == tree->nil){
         tree->root = y;
-    }else if(x == x->parent->right){
-        x->parent->right = y;
-    }else{
+    }else if(x == x->parent->left){
         x->parent->left = y;
+    }else{
+        x->parent->right = y;
     }
     y->right = x;
     x->parent = y;
@@ -46,9 +49,9 @@ void rightRotate(rbTree* tree, rbNode* x){
  * */
 bool compareDate(Date* date1, Date* date2){
     if(date1 == NULL && date2 != NULL){
-        return date2;
+        return false;
     }else if(date1 != NULL && date2 == NULL){
-        return date1;
+        return true;
     }
     if(date1->year > date2->year) {
         return  true;
@@ -60,9 +63,36 @@ bool compareDate(Date* date1, Date* date2){
         return false;
 }
 
+int compare_dates (Date* d1, Date* d2)
+{
+    if(d1 == NULL || d2 == NULL)
+        return 3;
+
+    if (d1->year < d2->year)
+        return -1;
+
+    else if (d1->year > d2->year)
+        return 1;
+
+    if (d1->year == d2->year)
+    {
+        if (d1->month<d2->month)
+            return -1;
+        else if (d1->month>d2->month)
+            return 1;
+        else{
+            if (d1->day<d2->day)
+                return -1;
+            else if(d1->day>d2->day)
+                return 1;
+            else
+                return 0;
+        }
+    }
+}
+
 rbTree* createRbTree(){
     rbTree* tree = malloc(sizeof(rbTree));
-    tree->root = malloc(sizeof(rbNode));
     tree->nil = malloc(sizeof(rbNode));
 
     tree->nil->parent = NULL;
@@ -99,24 +129,33 @@ void rbInsert(rbTree* tree, rbNode* z){
     rbNode* y = tree->nil;
     rbNode* x = tree->root;
 
+    z->left = tree->nil;
+    z->right = tree->nil;
+
     while (x != tree->nil){
         y = x;
-        if(compareDate(x->key, z->key))
+        if(compare_dates(z->key, x->key) == -1)
             x = x->left;
         else
             x = x->right;
+/*        else if(compare_dates(z->key, x->key) == 1)
+            x = x->right;
+        else if(compare_dates(z->key, x->key) == 0)
+            x = x->right;
+        else
+            return;*/
     }
+
     z->parent = y;
 
     if(y == tree->nil)
         tree->root = z;
-    else if(compareDate(x->key, z->key))
+    else if(compare_dates(z->key, y->key) == -1)
         y->left = z;
     else
         y->right = z;
 
-    z->left = tree->nil;
-    z->right = tree->nil;
+
     z->colour = Red;
     rbInsertFixup(tree, z);
 }
@@ -124,7 +163,6 @@ void rbInsert(rbTree* tree, rbNode* z){
 void rbInsertFixup(rbTree* tree, rbNode* z){
     rbNode* y;
     while(z->parent->colour == Red){
-        //printf("I am fixup insert :)\n");
         if(z->parent == z->parent->parent->left){
             y = z->parent->parent->right;
             if(y->colour == Red){
@@ -132,30 +170,36 @@ void rbInsertFixup(rbTree* tree, rbNode* z){
                 y->colour = Black;
                 z->parent->parent->colour = Red;
                 z = z->parent->parent;
-            }else{
+            }
+            else{
                 if(z == z->parent->right){
                     z = z->parent;
                     leftRotate(tree, z);
                 }
                 z->parent->colour = Black;
                 z->parent->parent->colour = Red;
-                rightRotate(tree, z);
+                rightRotate(tree, z->parent->parent);
             }
-        } else{
+        }
+        else{
             y = z->parent->parent->left;
             if(y->colour == Red){
                 z->parent->colour = Black;
                 y->colour = Black;
                 z->parent->parent->colour = Red;
                 z = z->parent->parent;
-            }else{
+            }
+            else{
                 if(z == z->parent->left){
                     z = z->parent;
                     rightRotate(tree, z);
                 }
                 z->parent->colour = Black;
                 z->parent->parent->colour = Red;
-                leftRotate(tree, z);
+                leftRotate(tree, z->parent->parent);
+            }
+            if(z == tree->root){
+                break;
             }
         }
 
@@ -163,21 +207,46 @@ void rbInsertFixup(rbTree* tree, rbNode* z){
     tree->root->colour = Black;
 }
 
-rbNode* searchRbNode(rbTree* tree, void* key){
-    /*Check for empty tree*/
-    if(tree->root == tree->nil){
-        return tree->nil;
+
+void printRbTree(rbNode* root, int depth){
+
+    if(root->key == NULL){
+        return;
+    }
+    printRbTree(root->left, depth+1);
+    PatientCase* patient;
+    patient = root->listNodeEntry->item;
+    fprintf(stdout,"depth = %d, case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
+                   "exportDate: %d-%d-%d\n",depth, patient->caseNum, patient->name, patient->surname, patient->virus,
+            patient->country, patient->entryDate->day, patient->entryDate->month, patient->entryDate->year,
+            patient->exitDate->day, patient->exitDate->month, patient->exitDate->year);
+    printRbTree(root->right, depth+1);
+
+}
+
+rbNode* searchRbNodeRec(rbNode* root, rbNode* nil, void* key){
+    if(root == NULL || root == nil){
+        return NULL;
     }
 
-    rbNode* treeNode = tree->root;
-    while (treeNode != tree->nil){
-        if(compareDate(treeNode->key, key)){
-            treeNode = treeNode->left;
-        }else if(compareDate(key, treeNode->key)){
-            treeNode = treeNode->right;
-        } else
-            return treeNode;
+    if(compare_dates(root->key, key) == 1){
+        searchRbNodeRec(root->left, nil, key);
+    }else if(compare_dates(root->key, key) == -1){
+        searchRbNodeRec(root->right, nil, key);
+    } else {
+        searchRbNodeRec(root->left, nil, key);
+        PatientCase* patient = root->listNodeEntry->item;
+        fprintf(stdout,
+                "case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
+                "exportDate: %d-%d-%d\n", patient->caseNum, patient->name, patient->surname, patient->virus,
+                patient->country, patient->entryDate->day, patient->entryDate->month, patient->entryDate->year,
+                patient->exitDate->day, patient->exitDate->month, patient->exitDate->year);
+        searchRbNodeRec(root->right, nil, key);
     }
-    /*the node with the given key was not found*/
-    return tree->nil;
+    return root;
+
+}
+
+rbNode* searchRbNode(rbTree* tree, void* key){
+    return searchRbNodeRec(tree->root, tree->nil, key);
 }

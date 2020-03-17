@@ -15,14 +15,14 @@
 
 typedef struct BucketEntry{
     char* data;
-    struct rbtree* tree;
+    struct rbTree* tree;
+    unsigned long key;
 }BucketEntry;
 
 //Hashtable element structure
 typedef struct Bucket {
     BucketEntry* entry;	// Pointer to the stored element 8
     struct Bucket* next; // Next element in case of a collision 8
-    unsigned long key; 	// Key of the stored elements 8
     int numOfEntries;//the space the data we have already entered occupy in the bucket 4
     size_t bucketSize; //8
 }Bucket;

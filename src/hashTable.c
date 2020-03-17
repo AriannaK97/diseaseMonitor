@@ -38,7 +38,7 @@ bool bucketHasSpace(Bucket *bucket){
     //the new data can fit in the existing bucket
     int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
     int entries = freeSpace/DATA_SPACE;
-    if(entries > bucket->numOfEntries){
+    if(bucket->numOfEntries < entries){
         return true;
     }else{
         return false;
@@ -84,21 +84,21 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
         //return hashERROR;
         return NULL;
     }
-    bucket->key = key;
     bucket->bucketSize = bucketSize;
-    int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
-    int entries = freeSpace/DATA_SPACE;
+    unsigned long freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
+    unsigned long entries = freeSpace/DATA_SPACE;
     bucket->entry = malloc(entries * sizeof(BucketEntry));
     for(int i = 0; i < entries; i++){
         bucket->entry[i].data = malloc(DATA_SPACE* sizeof(char));
+        bucket->entry[i].tree = (struct rbTree *) createRbTree();
     }
-    memcpy(bucket->entry[0].data, data, DATA_SPACE);
-    bucket->numOfEntries++;
 
+    memcpy(bucket->entry[0].data, data, DATA_SPACE);
+    bucket->entry[0].key = key;
     //create the rbtree for the new entry
-    bucket->entry->tree = createRbTree();
     rbNode* treeNode = createRbTreeNode(listNode);
-    rbInsert(bucket->entry->tree, treeNode);
+    rbInsert((rbTree*)bucket->entry[0].tree, treeNode);
+    bucket->numOfEntries++;
 
     // Add the element at the beginning of the linked list
     bucket->next = hTable->table[h];
@@ -108,57 +108,74 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
     return NULL;
 }
 
+
+
 /**
  * either the virus or the country occupy 32bytes
  * */
 void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* hTable, unsigned long key, Node* listNode){
-
+    int bCounter = 0;
     while (bucket != NULL){
-        if(bucket->key == key){
-            for(int i = 0; i < bucket->numOfEntries; i++){
-                if (strcmp(data, bucket->entry[i].data)==0){
-                    rbNode* treeNode = createRbTreeNode(listNode);
-                    rbInsert(bucket->entry->tree, treeNode);
-                    return;
-                }
-            }
 
-            //we have the final bucket of the list and have not found any matches previously
-            if(bucket->next == NULL){
-                if(bucketHasSpace(bucket)){
-                    memcpy(bucket->entry[bucket->numOfEntries].data, data, DATA_SPACE);
-                    bucket->numOfEntries++;
-                    hTable->e_num ++;
+        for(int i = 0; i < bucket->numOfEntries; i++){
+            if(strcmp(data, bucket->entry[i].data)==0){
+                rbNode* treeNode = createRbTreeNode(listNode);
+                rbInsert((rbTree*)bucket->entry[i].tree, treeNode);
 
-                    //create the rbtree for the new entry
-                    bucket->entry->tree = createRbTree();
-                    rbNode* treeNode = createRbTreeNode(listNode);
-                    rbInsert(bucket->entry->tree, treeNode);
+/*                if(strcmp(bucket->entry[i].data, "France")==0){
+                    rbTree* tree =  bucket->entry[i].tree;
+                    printf("I am bucket %d\n", bCounter);
+                    printRbTree(tree->root, 0);
+                    printf("/////////////////////////////////////////////////////////////////////////\n");
+                }*/
 
-                    return;
-                } else{
-                    bucket = getBucket(bucketSize, bucket);
-                    bucket->key = key;
-                    int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
-                    int entries = freeSpace/DATA_SPACE;
-                    bucket->entry = malloc(entries * sizeof(BucketEntry));
-                    for(int i = 0; i < entries; i++){
-                        bucket->entry[i].data = malloc(DATA_SPACE* sizeof(char));
-                    }
-                    memcpy(bucket->entry[0].data, data, DATA_SPACE);
-                    bucket->numOfEntries++;
-                    hTable->e_num ++;
-
-                    //create the rbtree for the new entry
-                    bucket->entry->tree = createRbTree();
-                    rbNode* treeNode = createRbTreeNode(listNode);
-                    rbInsert(bucket->entry->tree, treeNode);
-
-                    return;
-                }
+                return;
             }
         }
+
+        //we have the final bucket of the list and have not found any matches previously
+        if(bucket->next == NULL){
+
+            if(bucketHasSpace(bucket)){
+
+                memcpy(bucket->entry[bucket->numOfEntries].data, data, DATA_SPACE);
+                bucket->entry[bucket->numOfEntries].key = key;
+                //create the rbtree for the new entry
+                rbNode* treeNode = createRbTreeNode(listNode);
+                rbInsert((rbTree*)bucket->entry[bucket->numOfEntries].tree, treeNode);
+
+                bucket->numOfEntries++;
+                hTable->e_num ++;
+
+                return;
+            }else{
+
+                int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
+                int entries = freeSpace/DATA_SPACE;
+
+                bucket = getBucket(bucketSize, bucket);
+
+                bucket->entry = malloc(entries * sizeof(BucketEntry));
+                for(int i = 0; i < entries; i++){
+                    bucket->entry[i].data = malloc(DATA_SPACE* sizeof(char));
+                    bucket->entry[i].tree = createRbTree();
+                }
+
+                memcpy(bucket->entry[0].data, data, DATA_SPACE);
+                bucket->entry[0].key = key;
+                //create the rbtree for the new entry
+                rbNode* treeNode = createRbTreeNode(listNode);
+                rbInsert((rbTree*)bucket->entry[0].tree, treeNode);
+
+                bucket->numOfEntries++;
+                hTable->e_num ++;
+
+                return;
+            }
+        }
+
         bucket = bucket->next;
+        bCounter++;
     }
 }
 
@@ -167,11 +184,12 @@ void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* h
  */
 void* hashGet(HashTable* hTable, unsigned long key){
     unsigned int h = hash(key) % hTable->capacity;
-    Bucket* e = hTable->table[h];
-    while(e != NULL){
-        if(e->key == key) //cover collision cases
-            return e->entry->data;
-        e = e->next;
+    Bucket* bucket = hTable->table[h];
+    while(bucket != NULL){
+        for (int i = 0; i < bucket->numOfEntries; i++)
+            if(bucket->entry[i].key == key) //cover collision cases
+                return bucket->entry[i].data;
+        bucket = bucket->next;
     }
     return NULL;
 }
@@ -182,22 +200,24 @@ void* hashGet(HashTable* hTable, unsigned long key){
  **/
 void* hashRemove(HashTable* hTable, unsigned long key){
     unsigned int h = hash(key) % hTable->capacity;
-    Bucket* e = hTable->table[h];
+    Bucket* bucket = hTable->table[h];
     Bucket* prev = NULL;
-    while(e != NULL){
-        if(e->key == key){
-            void* ret = e->entry->data;
-            if(prev != NULL)
-                prev->next = e->next;
-            else
-                hTable->table[h] = e->next;
-            free(e);
-            e = NULL;
-            hTable->e_num --;
-            return ret;
+    while(bucket != NULL){
+        for (int i = 0; bucket->numOfEntries; i++){
+            if(bucket->entry[i].key == key){
+                void* ret = bucket->entry->data;
+                if(prev != NULL)
+                    prev->next = bucket->next;
+                else
+                    hTable->table[h] = bucket->next;
+                free(bucket);
+                bucket = NULL;
+                hTable->e_num --;
+                return ret;
+            }
+            prev = bucket;
         }
-        prev = e;
-        e = e->next;
+        bucket = bucket->next;
     }
     return NULL;
 }
@@ -205,7 +225,7 @@ void* hashRemove(HashTable* hTable, unsigned long key){
 /**
  * List keys. k should have length equals or greater than the number of keys
  */
-void hashListKeys(HashTable* hTable, unsigned long* k, size_t len){
+/*void hashListKeys(HashTable* hTable, unsigned long* k, size_t len){
     if(len < hTable->e_num){
         return;
     }
@@ -220,7 +240,7 @@ void hashListKeys(HashTable* hTable, unsigned long* k, size_t len){
             e = e->next;
         }
     }
-}
+}*/
 
 /**	List values. v should have length equals or greater
   *than the number of stored elements
@@ -243,8 +263,22 @@ void hashListValues(HashTable* hTable, void** v, size_t len){
 void iterateBucketData(Bucket* bucket){
     BucketEntry *iterator = bucket->entry;
 
+    Date searchDate;
+    searchDate.day = 18;
+    searchDate.month = 05;
+    searchDate.year = 2012;
+
+    //printf("numOfEntries = %d\n", bucket->numOfEntries);
     for(int i = 0; i < bucket->numOfEntries; i++){
+
+        if(iterator[i].tree != NULL){
+            rbTree* tree = (rbTree*)iterator[i].tree;
+            if(strcmp(iterator[i].data, "France") == 0)
+                printf("  \n");
+            rbNode* treeNode = searchRbNode((rbTree*)iterator[i].tree, &searchDate);
+        }
         printf("%s\n",iterator[i].data);
+
     }
 }
 
@@ -273,7 +307,7 @@ Bucket* hashIterate(HashElement* iterator){
 /* Iterate through keys. */
 unsigned long hashIterateKeys(HashElement* iterator){
     Bucket* e = hashIterate(iterator);
-    return (e == NULL ? NULL : e->key);
+    return (e == NULL ? 0 : e->entry->key);
 }
 
 /**
@@ -291,7 +325,7 @@ void* hashIterateValues(HashElement* iterator){
 void hashClear(HashTable* hTable, int free_data){
     HashElement it = hashITERATOR(hTable);
     unsigned long k = hashIterateKeys(&it);
-    while(k != NULL){
+    while(k != 0){
         free_data ? free(hashRemove(hTable, k)) : hashRemove(hTable, k);
         k = hashIterateKeys(&it);
     }

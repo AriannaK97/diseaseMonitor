@@ -8,6 +8,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include "structs.h"
+#include "redBlackTree.h"
 
 typedef struct rbNode{
     int colour;
@@ -23,6 +24,12 @@ typedef struct rbTree{
     struct rbNode* nil;
 }rbTree;
 
+typedef struct rbIterTree{
+    struct rbNode* treeNode;
+    struct rbNode* parent;
+}rbIterTree;
+
+
 enum colours{
     Red,
     Black,
@@ -34,6 +41,8 @@ rbNode* createRbTreeNode(void* listNode);
 
 void leftRotate(rbTree* rbTree, rbNode* treeNode);
 
+void rightRotate(rbTree* tree, rbNode* x);
+
 void rbInsert(rbTree* tree, rbNode* z);
 
 void rbInsertFixup(rbTree* tree, rbNode* z);
@@ -43,5 +52,11 @@ void* getKey(Node* listNode);
 bool compareDate(Date* date1, Date* date2);
 
 rbNode* searchRbNode(rbTree* tree, void* key);
+
+void printRbTree(rbNode* root, int depth);
+
+int compare_dates (Date* d1, Date* d2);
+
+rbNode* searchRbNodeRec(rbNode* root, rbNode* nil, void* key);
 
 #endif //DISEASEMONITOR_REDBLACKTREE_H

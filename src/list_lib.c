@@ -85,7 +85,7 @@ bool searchListForDuplicates(List* linkedList, int key){
 void printList(List* patientList){
     PatientCase* newPatient;
     Node* newNode = patientList->head;
-    while (newNode != NULL){
+    while (newNode != NULL && newNode->item != NULL){
         newPatient = (PatientCase*)newNode->item;
         fprintf(stdout,"case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
                        "exportDate: %d-%d-%d\n", newPatient->caseNum, newPatient->name, newPatient->surname, newPatient->virus,
