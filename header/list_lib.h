@@ -26,7 +26,9 @@ void printList(List* patientList);
 
 void printListNode(Node* node);
 
-bool searchListForDuplicates(List* linkedList, int key);
+bool searchListForRecordID(List* linkedList, int key);
+
+bool searchNodeForRecordID_ExitDateUpdate(List* linkedList, int key, Date* exitDate);
 
 bool compareListItemPatient(PatientCase* patient, int key);
 

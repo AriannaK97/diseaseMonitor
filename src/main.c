@@ -21,8 +21,8 @@ int main(int argc, char** argv) {
 
     free(arguments);
     //printList(cmdManager->patientList);
-    printHashTable(cmdManager->diseaseHashTable);
-    printHashTable(cmdManager->countryHashTable);
+    applyOperationOnHashTable(cmdManager->diseaseHashTable, PRINT);
+    applyOperationOnHashTable(cmdManager->countryHashTable, PRINT);
 
     commandServer(cmdManager);
 

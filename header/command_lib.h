@@ -6,20 +6,21 @@
 #define DISEASEMONITOR_COMMAND_LIB_H
 
 typedef struct CmdManager CmdManager;
+typedef struct Date Date;
 
-void globalDiseaseStats();
+void globalDiseaseStats(CmdManager* manager, Date* date1, Date* date2);
 
-void diseaseFrequency();
+void diseaseFrequency(CmdManager* manager, char* virusName, Date* date1, Date* date2, char* country);
 
 void topk_Diseases();
 
 void topk_Countries();
 
-void insertPatientRecord(CmdManager* manager);
+void insertPatientRecord(CmdManager* manager, char* buffer);
 
-void recordPatientDateExit();
+void recordPatientExit(CmdManager* manager, char* args);
 
-void numCurrentPatients();
+void numCurrentPatients(CmdManager* manager, char* disease);
 
 void exitMonitor(CmdManager* manager);
 

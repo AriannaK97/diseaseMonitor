@@ -242,7 +242,7 @@ void* hashRemove(HashTable* hTable, unsigned long key){
     }
 }*/
 
-/**	List values. v should have length equals or greater
+/**	List values. v should have length equals or greaterff
   *than the number of stored elements
   */
 void hashListValues(HashTable* hTable, void** v, size_t len){
@@ -259,8 +259,28 @@ void hashListValues(HashTable* hTable, void** v, size_t len){
     }
 }
 
+int iterateBucketData_BetweenDates(Bucket* bucket, int operationCall, Date* date1, Date* date2){
+    BucketEntry *iterator = bucket->entry;
 
-void iterateBucketData(Bucket* bucket, int operationCall){
+    if(operationCall == SEARCH){
+        for(int i = 0; i < bucket->numOfEntries; i++){
+            if(iterator[i].tree != NULL){
+                searchRbNode((rbTree*)iterator[i].tree, &date1);
+            }
+        }
+    }else if(operationCall == COUNT_ALL_BETWEEN_DATES){
+        int counter = 0;
+        for(int i = 0; i < bucket->numOfEntries; i++){
+            if(iterator[i].tree != NULL){
+                counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, date1, date2);
+                fprintf(stdout,"The number of patients monitored for %s: %d\n",iterator[i].data, counter);
+            }
+        }
+        return counter;
+    }
+}
+
+int iterateBucketData(Bucket* bucket, int operationCall){
     BucketEntry *iterator = bucket->entry;
 
     Date searchDate;
@@ -268,13 +288,38 @@ void iterateBucketData(Bucket* bucket, int operationCall){
     searchDate.month = 05;
     searchDate.year = 2012;
 
-    if(operationCall == SEARCH){
+    /*if(operationCall == SEARCH){
         for(int i = 0; i < bucket->numOfEntries; i++){
             if(iterator[i].tree != NULL){
                 searchRbNode((rbTree*)iterator[i].tree, &searchDate);
             }
-            printf("%s\n",iterator[i].data);
+        }
+    }else */
+    if(operationCall == COUNT_HOSPITALISED || operationCall == COUNT_ALL ) {
+        int counter = 0;
+        for (int i = 0; i < bucket->numOfEntries; i++) {
+            if (iterator[i].tree != NULL) {
+                counter += countPatients((rbTree *) iterator[i].tree, operationCall);
+                fprintf(stdout, "The number of patients monitored for %s: %d\n", iterator[i].data, counter);
             }
+        }
+        return counter;
+    }
+    /*else if(operationCall == COUNT_ALL_BETWEEN_DATES){
+        int counter = 0;
+        for (int i = 0; i < bucket->numOfEntries; i++) {
+            if (iterator[i].tree != NULL) {
+                counter += countPatients_BetweenDates((rbTree *) iterator[i].tree, operationCall);
+                fprintf(stdout, "The number of patients monitored for %s: %d\n", iterator[i].data, counter);
+            }
+        }
+        return counter;
+
+    }*/
+    else if(operationCall == PRINT){
+        for(int i = 0; i < bucket->numOfEntries; i++){
+            fprintf(stdout,"%s\n",iterator[i].data);
+        }
     }else if(operationCall == REMOVE){
         for(int i = 0; i < bucket->numOfEntries; i++){
             if(bucket != NULL){
@@ -302,13 +347,12 @@ Bucket* hashIterate(HashElement* iterator, int operationCall){
     }
     Bucket* bucket = iterator->elem;
     if(bucket){
-        if(operationCall == SEARCH){
-            iterateBucketData(bucket, SEARCH);
-            iterator->elem = bucket->next;
-        }else if(operationCall == REMOVE){
-            iterateBucketData(bucket, REMOVE);
-            iterator->elem = bucket->next;
+        if(iterator->date1 == 0 && iterator->date2 == 0){
+            iterator->counter += iterateBucketData(bucket, operationCall);
+        } else {
+            iterator->counter += iterateBucketData_BetweenDates(bucket, operationCall, iterator->date1, iterator->date2);
         }
+        iterator->elem = bucket->next;
     }
     return bucket;
 }
@@ -351,14 +395,7 @@ void hashDestroy(HashTable* hTable){
 }
 
 
-void printHashTable(HashTable* hTable){
-    HashElement *iterator = malloc(sizeof(HashElement));
-    char *data = malloc(DATA_SPACE*sizeof(char));
-    iterator->ht = hTable;
-    iterator->index = 0;
-    iterator->elem = NULL;
-
-    while((data = hashIterateValues(iterator, SEARCH)) != NULL);
-    free(iterator);
-    free(data);
+void applyOperationOnHashTable(HashTable* hTable, int operationCall){
+    HashElement iterator = hashITERATOR(hTable);
+    while(hashIterateValues(&iterator, operationCall) != NULL);
 }

@@ -163,7 +163,7 @@ PatientCase* getPatient(char* buffer){
     return newPatient;
 }
 
-void writeEntry(char* buffer, List* patientList, HashTable* diseaseHashTable, HashTable* countryHashTable, int bucketSize){
+bool writeEntry(char* buffer, List* patientList, HashTable* diseaseHashTable, HashTable* countryHashTable, int bucketSize){
     PatientCase* newPatient;
     Node* newNode;
     //printf("%s\n", buffer);
@@ -172,11 +172,12 @@ void writeEntry(char* buffer, List* patientList, HashTable* diseaseHashTable, Ha
 
     if(patientList->head == NULL){
         patientList = linkedListInit(newNode);
-    }else if(!searchListForDuplicates(patientList, newPatient->caseNum)){
+    }else if(!searchListForRecordID(patientList, newPatient->caseNum)){
         push(newNode, patientList);
     }
     hashPut(diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize, newNode);
     hashPut(countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize, newNode);
+    return true;
 }
 
 CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int diseaseHashtableNumOfEntries,
@@ -199,7 +200,7 @@ CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int d
 
         if(patientList == NULL){
             patientList = linkedListInit(newNode);
-        }else if(!searchListForDuplicates(patientList, newPatient->caseNum)){
+        }else if(!searchListForRecordID(patientList, newPatient->caseNum)){
             push(newNode, patientList);
         }
         hashPut(diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize, newNode);

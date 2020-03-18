@@ -72,11 +72,35 @@ bool compareListItemPatient(PatientCase* patient, int key){
     return false;
 }
 
+bool searchNodeForRecordID_ExitDateUpdate(List* linkedList, int key, Date* exitDate){
+    Node* node = linkedList->head;
+    while (node != NULL){
+        if (compareListItemPatient(node->item, key)){
+            PatientCase* exitPatient = (PatientCase*)node->item;
+            if(dateInputValidation(exitPatient->entryDate, exitDate)){
+                exitPatient->exitDate = exitDate;
+                return true;
+            }else{
+                fprintf(stdout,"Exit date could not be updated for patient:\n case number: %d | name: %s | "
+                               "surname: %s | virus: %s | country: %s | entryDate: %d-%d-%d\n\nInvalid exit date: "
+                               "%d-%d-%d", exitPatient->caseNum, exitPatient->name, exitPatient->surname,
+                               exitPatient->virus, exitPatient->country, exitPatient->entryDate->day,
+                               exitPatient->entryDate->month, exitPatient->entryDate->year, exitPatient->exitDate->day,
+                               exitPatient->exitDate->month, exitPatient->exitDate->year);
+                return false;
+            }
+        }
+        node = node->next;
+    }
+    fprintf(stderr, "Could not find the patient with record id %d in the system\n Could not update", key);
+    return false;
+}
+
 /**
  * Search for duplicates in list
  * Used for new entry validation
  * */
-bool searchListForDuplicates(List* linkedList, int key){
+bool searchListForRecordID(List* linkedList, int key){
     Node* node = linkedList->head;
     while (node != NULL){
         if (compareListItemPatient(node->item, key)){
@@ -86,7 +110,6 @@ bool searchListForDuplicates(List* linkedList, int key){
         node = node->next;
     }
     return false;
-
 }
 
 /**

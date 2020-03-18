@@ -47,24 +47,8 @@ void rightRotate(rbTree* tree, rbNode* x){
  * If the first argument is greater than the second it returns true
  * else it return false.
  * */
-bool compareDate(Date* date1, Date* date2){
-    if(date1 == NULL && date2 != NULL){
-        return false;
-    }else if(date1 != NULL && date2 == NULL){
-        return true;
-    }
-    if(date1->year > date2->year) {
-        return  true;
-    }else if(date1->month > date2->month){
-        return true;
-    }else if(date1->day > date2->day){
-        return true;
-    }else
-        return false;
-}
 
-int compare_dates (Date* d1, Date* d2)
-{
+int compare_dates (Date* d1, Date* d2){
     if(d1 == NULL || d2 == NULL)
         return 3;
 
@@ -133,20 +117,13 @@ void rbInsert(rbTree* tree, rbNode* z){
     z->left = tree->nil;
     z->right = tree->nil;
 
-    while (x != tree->nil){
+    while (x != tree->nil) {
         y = x;
-        if(compare_dates(z->key, x->key) == -1)
+        if (compare_dates(z->key, x->key) == -1)
             x = x->left;
         else
             x = x->right;
-/*        else if(compare_dates(z->key, x->key) == 1)
-            x = x->right;
-        else if(compare_dates(z->key, x->key) == 0)
-            x = x->right;
-        else
-            return;*/
     }
-
     z->parent = y;
 
     if(y == tree->nil)
@@ -224,6 +201,59 @@ void printRbTree(rbNode* root, int depth){
     printRbTree(root->right, depth+1);
 
 }
+
+int countPatients(rbTree* tree, int operationCall){
+    return rbNodeCounter(tree->root, tree->nil, operationCall);
+}
+
+bool checkDateSpace(PatientCase* patient, Date* date1, Date* date2){
+    if (compare_dates(patient->entryDate, date1)==1 && compare_dates(patient->entryDate, date2) == -1)
+        return true;
+    return false;
+}
+
+int countPatients_BetweenDates(rbTree* tree, int operationCall, Date* date1, Date* date2){
+    return rbNodeCounter_BetweenDates(tree->root, tree->nil, operationCall, date1, date2);
+}
+
+int rbNodeCounter_BetweenDates(rbNode* root, rbNode* nil, int operationCall, Date* date1, Date* date2){
+    if(root == NULL || root == nil){
+        return 0;
+    }
+
+    int counter = 0;
+    counter += rbNodeCounter_BetweenDates(root->left, nil, operationCall, date1, date2);
+    PatientCase* patient = root->listNodeEntry->item;
+    if(operationCall == COUNT_ALL_BETWEEN_DATES){
+        if(checkDateSpace(patient, date1, date2))
+            counter++;
+    }
+    counter += rbNodeCounter_BetweenDates(root->right, nil, operationCall, date1, date2);
+
+    return counter;
+}
+
+
+int rbNodeCounter(rbNode* root, rbNode* nil, int operationCall){
+    if(root == NULL || root == nil){
+        return 0;
+    }
+
+    int counter = 0;
+
+    counter += rbNodeCounter(root->left, nil, operationCall);
+    PatientCase* patient = root->listNodeEntry->item;
+    if(operationCall == COUNT_HOSPITALISED){
+        if(patient->exitDate->year == 0 && patient->exitDate->day == 0 && patient->exitDate->month == 0)
+            counter++;
+    }else if(operationCall == COUNT_ALL) {
+        counter++;
+    }
+    counter += rbNodeCounter(root->right, nil, operationCall);
+
+    return counter;
+}
+
 
 rbNode* searchRbNodeRec(rbNode* root, rbNode* nil, void* key){
     if(root == NULL || root == nil){

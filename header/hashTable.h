@@ -14,6 +14,10 @@
 #define DATA_SPACE 32
 #define REMOVE 1
 #define SEARCH 2
+#define PRINT 3
+#define COUNT_ALL 4
+#define COUNT_HOSPITALISED 5
+#define COUNT_ALL_BETWEEN_DATES 6
 
 typedef struct BucketEntry{
     char* data;
@@ -41,12 +45,14 @@ typedef struct HashElement{
     HashTable* ht; 	// The hashtable on which we iterate
     unsigned int index;	// Current index in the table
     Bucket* elem; 	// Current element in the list
-    int BucketEntry;
+    int counter;    //used when we count all the entries in the system
+    Date* date1;    //for operations requiring date boundaries
+    Date* date2;
 }HashElement;
 
 
 // Inititalize hashtable iterator on hashtable 'ht'
-#define hashITERATOR(ht) {ht, 0, ht->table[0]}
+#define hashITERATOR(ht) {ht, 0, ht->table[0], 0, 0}
 
 char err_ptr;
 //void* hashERROR = &err_ptr; // Data pointing to hashERROR are returned in case of error
@@ -73,10 +79,12 @@ void hashDestroy(HashTable*);
 
 bool bucketHasSpace(Bucket *bucket);
 
-void printHashTable(HashTable* hTable);
+void applyOperationOnHashTable(HashTable* hTable, int operationCall);
 
 void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* hTable, unsigned long key, Node* listNode);
 
-void iterateBucketData(Bucket* bucket, int operationCall);
+int iterateBucketData(Bucket* bucket, int operationCall);
+
+int iterateBucketData_BetweenDates(Bucket* bucket, int operationCall, Date* date1, Date* date2);
 
 #endif //DISEASEMONITOR_HASHTABLE_H

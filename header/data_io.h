@@ -25,7 +25,7 @@ InputArguments* getInputArgs(int argc, char** argv);
 
 int getMaxFromFile(FILE* patientRecordsFile, int returnVal);
 
-void writeEntry(char* buffer, List* patientList, HashTable* diseaseHashTable, HashTable* countryHashTable, int bucketSize);
+bool writeEntry(char* buffer, List* patientList, HashTable* diseaseHashTable, HashTable* countryHashTable, int bucketSize);
 
 CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int diseaseHashtableNumOfEntries,
                             int countryHashTableNumOfEntries, size_t bucketSize);
