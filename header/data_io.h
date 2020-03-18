@@ -5,7 +5,7 @@
 #ifndef DISEASEMONITOR_DATA_IO_H
 #define DISEASEMONITOR_DATA_IO_H
 
-#include <stdio.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include "list_lib.h"
@@ -24,6 +24,8 @@ FILE* openFile(char *inputFile);
 InputArguments* getInputArgs(int argc, char** argv);
 
 int getMaxFromFile(FILE* patientRecordsFile, int returnVal);
+
+void writeEntry(char* buffer, List* patientList, HashTable* diseaseHashTable, HashTable* countryHashTable, int bucketSize);
 
 CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int diseaseHashtableNumOfEntries,
                             int countryHashTableNumOfEntries, size_t bucketSize);

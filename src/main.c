@@ -19,11 +19,12 @@ int main(int argc, char** argv) {
     cmdManager = read_input_file(patientRecordsFile, getMaxFromFile(patientRecordsFile, LINE_LENGTH),
             arguments->diseaseHashtableNumOfEntries,arguments->countryHashTableNumOfEntries, arguments->bucketSize);
 
+    free(arguments);
     //printList(cmdManager->patientList);
     printHashTable(cmdManager->diseaseHashTable);
     printHashTable(cmdManager->countryHashTable);
 
-    //commandServer(cmdManager);
+    commandServer(cmdManager);
 
     return 0;
 }

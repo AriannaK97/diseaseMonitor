@@ -15,7 +15,7 @@ void topk_Diseases();
 
 void topk_Countries();
 
-void insertPatientRecord();
+void insertPatientRecord(CmdManager* manager);
 
 void recordPatientDateExit();
 

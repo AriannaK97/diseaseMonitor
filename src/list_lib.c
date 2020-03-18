@@ -39,12 +39,22 @@ void listMemoryDeallock(List* linkedList){
     Node* listNode = linkedList->head;
     while(listNode != NULL){
         linkedList->head = linkedList->head->next;
+        nodeItemDeallock(listNode->item);
         free(listNode);
         listNode = linkedList->head;
     }
     free(linkedList);
 }
 
+void nodeItemDeallock(PatientCase* item){
+    free(item->entryDate);
+    free(item->exitDate);
+    free(item->name);
+    free(item->surname);
+    free(item->country);
+    free(item->virus);
+    free(item);
+}
 
 Node* popNode(List* linkedList){
     Node* node = linkedList->head;

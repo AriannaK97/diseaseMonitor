@@ -1,8 +1,9 @@
 //
 // Created by AriannaK97 on 9/3/20.
 //
-
+#define  _GNU_SOURCE
 #include "../header/data_io.h"
+#include <stdio.h>
 
 FILE* openFile(char *inputFile){
     FILE *patientRecordsFile;
@@ -90,6 +91,7 @@ int getMaxFromFile(FILE* patientRecordsFile, int returnVal){
     }else if (returnVal == BUFFER_SIZE) {
         return BUFFERSIZE;
     }
+    return 0;
 }
 
 
@@ -158,24 +160,39 @@ PatientCase* getPatient(char* buffer){
         }
         tokenCase++;
     }
-    //tokenCase = 0;
     return newPatient;
 }
 
+void writeEntry(char* buffer, List* patientList, HashTable* diseaseHashTable, HashTable* countryHashTable, int bucketSize){
+    PatientCase* newPatient;
+    Node* newNode;
+    //printf("%s\n", buffer);
+    newPatient = getPatient(buffer);
+    newNode = nodeInit(newPatient);
+
+    if(patientList->head == NULL){
+        patientList = linkedListInit(newNode);
+    }else if(!searchListForDuplicates(patientList, newPatient->caseNum)){
+        push(newNode, patientList);
+    }
+    hashPut(diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize, newNode);
+    hashPut(countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize, newNode);
+}
 
 CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int diseaseHashtableNumOfEntries,
                             int countryHashTableNumOfEntries, size_t bucketSize){
     char* buffer = malloc(sizeof(char)*maxStrLength);
     CmdManager* cmdManager = malloc(sizeof(struct CmdManager));
+    List* patientList = NULL;
     PatientCase* newPatient;
     Node* newNode;
-    List* patientList = NULL;
-    PatientCase* temp;
 
     HashTable* diseaseHashTable = hashCreate(diseaseHashtableNumOfEntries);
     HashTable* countryHashTable = hashCreate(countryHashTableNumOfEntries);
 
     while(getline(&buffer, &maxStrLength, patientRecordsFile) >= 0){
+        //writeEntry(buffer, &patientList, diseaseHashTable, countryHashTable, bucketSize);
+
         //printf("%s\n", buffer);
         newPatient = getPatient(buffer);
         newNode = nodeInit(newPatient);
@@ -195,6 +212,9 @@ CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int d
     cmdManager->patientList = patientList;
     cmdManager->countryHashTable = countryHashTable;
     cmdManager->diseaseHashTable = diseaseHashTable;
+    cmdManager->bucketSize = bucketSize;
+
+    free(buffer);
 
     return cmdManager;
 }

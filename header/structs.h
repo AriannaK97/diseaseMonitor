@@ -40,6 +40,7 @@ typedef struct CmdManager{
     struct List* patientList;
     struct HashTable* diseaseHashTable;
     struct HashTable* countryHashTable;
+    size_t bucketSize;
 }CmdManager;
 
 

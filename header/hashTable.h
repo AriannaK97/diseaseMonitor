@@ -12,6 +12,8 @@
 #include "redBlackTree.h"
 
 #define DATA_SPACE 32
+#define REMOVE 1
+#define SEARCH 2
 
 typedef struct BucketEntry{
     char* data;
@@ -57,17 +59,13 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
 
 void* hashGet(HashTable*, unsigned long);
 
-void* hashRemove(HashTable*, unsigned long);
-
-void hashListKeys(HashTable* hTable, unsigned long* k, size_t len);
-
 void hashListValues(HashTable*, void**, size_t);
 
-Bucket* hashIterate(HashElement*);
+Bucket* hashIterate(HashElement*, int operationCall);
 
-unsigned long hashIterateKeys(HashElement*);
+unsigned long hashIterateKeys(HashElement* iterator, int operationCall);
 
-void* hashIterateValues(HashElement*);
+void* hashIterateValues(HashElement* iterator, int operationCall);
 
 void hashClear(HashTable*, int);
 
@@ -79,6 +77,6 @@ void printHashTable(HashTable* hTable);
 
 void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* hTable, unsigned long key, Node* listNode);
 
-void iterateBucketData(Bucket* bucket);
+void iterateBucketData(Bucket* bucket, int operationCall);
 
 #endif //DISEASEMONITOR_HASHTABLE_H

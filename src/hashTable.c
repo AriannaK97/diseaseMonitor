@@ -260,7 +260,7 @@ void hashListValues(HashTable* hTable, void** v, size_t len){
 }
 
 
-void iterateBucketData(Bucket* bucket){
+void iterateBucketData(Bucket* bucket, int operationCall){
     BucketEntry *iterator = bucket->entry;
 
     Date searchDate;
@@ -268,17 +268,21 @@ void iterateBucketData(Bucket* bucket){
     searchDate.month = 05;
     searchDate.year = 2012;
 
-    //printf("numOfEntries = %d\n", bucket->numOfEntries);
-    for(int i = 0; i < bucket->numOfEntries; i++){
-
-        if(iterator[i].tree != NULL){
-            rbTree* tree = (rbTree*)iterator[i].tree;
-            if(strcmp(iterator[i].data, "France") == 0)
-                printf("  \n");
-            rbNode* treeNode = searchRbNode((rbTree*)iterator[i].tree, &searchDate);
+    if(operationCall == SEARCH){
+        for(int i = 0; i < bucket->numOfEntries; i++){
+            if(iterator[i].tree != NULL){
+                searchRbNode((rbTree*)iterator[i].tree, &searchDate);
+            }
+            printf("%s\n",iterator[i].data);
+            }
+    }else if(operationCall == REMOVE){
+        for(int i = 0; i < bucket->numOfEntries; i++){
+            if(bucket != NULL){
+                if(iterator[i].tree != NULL){
+                    freeRbTree((rbTree*)iterator[i].tree);
+                }
+            }
         }
-        printf("%s\n",iterator[i].data);
-
     }
 }
 
@@ -286,7 +290,7 @@ void iterateBucketData(Bucket* bucket){
 /**
  * Iterate through table's elements.
  */
-Bucket* hashIterate(HashElement* iterator){
+Bucket* hashIterate(HashElement* iterator, int operationCall){
     while(iterator->elem == NULL){
         if(iterator->index < iterator->ht->capacity - 1){
             iterator->index++;
@@ -298,23 +302,29 @@ Bucket* hashIterate(HashElement* iterator){
     }
     Bucket* bucket = iterator->elem;
     if(bucket){
-        iterateBucketData(bucket);
-        iterator->elem = bucket->next;
+        if(operationCall == SEARCH){
+            iterateBucketData(bucket, SEARCH);
+            iterator->elem = bucket->next;
+        }else if(operationCall == REMOVE){
+            iterateBucketData(bucket, REMOVE);
+            iterator->elem = bucket->next;
+        }
     }
     return bucket;
 }
 
+
 /* Iterate through keys. */
-unsigned long hashIterateKeys(HashElement* iterator){
-    Bucket* e = hashIterate(iterator);
+unsigned long hashIterateKeys(HashElement* iterator, int operationCall){
+    Bucket* e = hashIterate(iterator, operationCall);
     return (e == NULL ? 0 : e->entry->key);
 }
 
 /**
  * Iterate through values.
  */
-void* hashIterateValues(HashElement* iterator){
-    Bucket* e = hashIterate(iterator);
+void* hashIterateValues(HashElement* iterator, int operationCall){
+    Bucket* e = hashIterate(iterator, operationCall);
     return (e == NULL ? NULL : e->entry->data);
 }
 
@@ -322,12 +332,12 @@ void* hashIterateValues(HashElement* iterator){
  * Removes all elements stored in the hashtable.
  * if free_data, all stored datas are also freed.
  */
-void hashClear(HashTable* hTable, int free_data){
+void hashClear(HashTable* hTable, int operationCall){
     HashElement it = hashITERATOR(hTable);
-    unsigned long k = hashIterateKeys(&it);
+    unsigned long k = hashIterateKeys(&it, REMOVE);
     while(k != 0){
-        free_data ? free(hashRemove(hTable, k)) : hashRemove(hTable, k);
-        k = hashIterateKeys(&it);
+        operationCall ? free(hashRemove(hTable, k)) : hashRemove(hTable, k);
+        k = hashIterateKeys(&it, REMOVE);
     }
 }
 
@@ -335,7 +345,7 @@ void hashClear(HashTable* hTable, int free_data){
   * Data still stored are freed
   */
 void hashDestroy(HashTable* hTable){
-    hashClear(hTable, 1); // Delete and free all.
+    hashClear(hTable, REMOVE); // Delete and free all.
     free(hTable->table);
     free(hTable);
 }
@@ -343,10 +353,12 @@ void hashDestroy(HashTable* hTable){
 
 void printHashTable(HashTable* hTable){
     HashElement *iterator = malloc(sizeof(HashElement));
+    char *data = malloc(DATA_SPACE*sizeof(char));
     iterator->ht = hTable;
     iterator->index = 0;
     iterator->elem = NULL;
-    char *data = malloc(DATA_SPACE*sizeof(char));
 
-    while((data = hashIterateValues(iterator)) != NULL);
+    while((data = hashIterateValues(iterator, SEARCH)) != NULL);
+    free(iterator);
+    free(data);
 }

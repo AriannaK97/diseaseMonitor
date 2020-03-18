@@ -24,11 +24,6 @@ typedef struct rbTree{
     struct rbNode* nil;
 }rbTree;
 
-typedef struct rbIterTree{
-    struct rbNode* treeNode;
-    struct rbNode* parent;
-}rbIterTree;
-
 
 enum colours{
     Red,
@@ -58,5 +53,9 @@ void printRbTree(rbNode* root, int depth);
 int compare_dates (Date* d1, Date* d2);
 
 rbNode* searchRbNodeRec(rbNode* root, rbNode* nil, void* key);
+
+void freeRbNodesRec(rbTree* tree, rbNode* node);
+
+void freeRbTree(rbTree* tree);
 
 #endif //DISEASEMONITOR_REDBLACKTREE_H

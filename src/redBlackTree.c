@@ -89,6 +89,7 @@ int compare_dates (Date* d1, Date* d2)
                 return 0;
         }
     }
+    return 3;
 }
 
 rbTree* createRbTree(){
@@ -249,4 +250,19 @@ rbNode* searchRbNodeRec(rbNode* root, rbNode* nil, void* key){
 
 rbNode* searchRbNode(rbTree* tree, void* key){
     return searchRbNodeRec(tree->root, tree->nil, key);
+}
+
+void freeRbTree(rbTree* tree){
+    freeRbNodesRec(tree, tree->root);
+    free(tree->nil);
+    free(tree);
+    fprintf(stdout, "Red Black Tree destroyed successfully!\n");
+}
+
+void freeRbNodesRec(rbTree* tree, rbNode* node){
+    if(node != tree->nil){
+        freeRbNodesRec(tree, node->left);
+        freeRbNodesRec(tree, node->right);
+        free(node);
+    }
 }

@@ -28,6 +28,8 @@ void printListNode(Node* node);
 
 bool searchListForDuplicates(List* linkedList, int key);
 
-void listClear(List* linkedList);
+bool compareListItemPatient(PatientCase* patient, int key);
+
+void nodeItemDeallock(PatientCase* item);
 
 #endif //DISEASEMONITOR_LIST_LIB_H

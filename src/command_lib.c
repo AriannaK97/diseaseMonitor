@@ -1,7 +1,7 @@
 //
 // Created by AriannaK97 on 12/3/20.
 //
-
+#define  _GNU_SOURCE
 #include "../header/command_lib.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,8 +15,7 @@
  * period defined form the given dates.
  * Cmd Args: [date1, date2]
  * */
-void globalDiseaseStats(){
-
+void globalDiseaseStats(CmdManager* manager, Date* date1, Date* date2){
 }
 
 /**
@@ -26,7 +25,7 @@ void globalDiseaseStats(){
  * the number of the diseased in this [country] for the specified period.
  * Cmd Args: virusName [country] date1 date2
  * */
-void diseaseFrequency(){
+void diseaseFrequency(CmdManager* manager, char* virusName, Date* date1, Date* date2, char* country){
 
 }
 
@@ -52,8 +51,15 @@ void topk_Countries(){
  * Insert a new patient record in the system
  * Cmd Args: recordID patientFirstName patientLastName diseaseID entryDate [exitDate]
  * */
-void insertPatientRecord(){
-
+void insertPatientRecord(CmdManager* manager){
+    char* buffer = NULL;
+    size_t maxLength = 256;
+    fprintf(stdout,"\nPlease enter a new patient record:\n");
+    while(getline(&buffer, &maxLength, stdin) != EOF){
+        printf("////////////////");
+        writeEntry(buffer, manager->patientList, manager->diseaseHashTable,
+                manager->countryHashTable, manager->bucketSize);
+    }
 }
 
 
@@ -90,6 +96,8 @@ void exitMonitor(CmdManager* manager){
     fprintf(stdout, "Destroy patient list...\n");
     listMemoryDeallock(manager->patientList);
 
+    free(manager);
+
     exit(0);
 }
 
@@ -97,7 +105,8 @@ void exitMonitor(CmdManager* manager){
 void commandServer(CmdManager* manager){
     char* command = NULL;
     char* line = NULL;
-    char* args = NULL;
+    char* arg1 = NULL;
+    char* arg2 = NULL;
     size_t length = 0;
 
     putchar('~');
@@ -113,22 +122,32 @@ void commandServer(CmdManager* manager){
         } else if(strcmp(command, "/exit") == 0){
             exitMonitor(manager);
         } else if(strcmp(command, "/globalDiseaseStats") == 0){
-            globalDiseaseStats();
+            globalDiseaseStats(manager, 0-0-0, 0-0-0);
+        } else if(strcmp(command, "/insertPatientRecord") == 0){
+            insertPatientRecord(manager);
         }
 
         command = strtok(line, " ");
-        args = strtok(NULL, "\n");
 
         if(strcmp(command, "/globalDiseaseStats") == 0){
-            globalDiseaseStats();
+            Date date1, date2;
+            arg1 = strtok(NULL, " ");
+            arg2 = strtok(NULL, "\n");
+
+            date1.day = atoi(strtok(arg1,"-"));
+            date1.month = atoi(strtok(NULL, "-"));
+            date1.year = atoi(strtok(NULL, "-"));
+            date2.day = atoi(strtok(arg2,"-"));
+            date2.month = atoi(strtok(NULL, "-"));
+            date2.year = atoi(strtok(NULL, "-"));
+
+            globalDiseaseStats(manager, &date1, &date2);
         } else if(strcmp(command, "/diseaseFrequency") == 0){
-            diseaseFrequency();
+            //diseaseFrequency(manager, virusName, Date* date1, Date* date2, char* country);
         } else if(strcmp(command, "/topk_Diseases") == 0){
             topk_Diseases();
         } else if(strcmp(command, "/topk_Countries") == 0){
             topk_Countries();
-        } else if(strcmp(command, "/insertPatientRecord") == 0){
-            insertPatientRecord();
         } else if(strcmp(command, "/recordPatientDateExit") == 0){
             recordPatientDateExit();
         } else if(strcmp(command, "/numCurrentPatients") == 0){
