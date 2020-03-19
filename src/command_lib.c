@@ -36,6 +36,18 @@ void globalDiseaseStats(CmdManager* manager, Date* date1, Date* date2){
  * */
 void diseaseFrequency(CmdManager* manager, char* virusName, Date* date1, Date* date2, char* country){
 
+    HashElement iterator = hashITERATOR(manager->diseaseHashTable);
+    iterator.date1 = date1;
+    iterator.date2 = date2;
+    iterator.virus = virusName;
+    if(country == NULL) {
+        while (hashIterateValues(&iterator, COUNT_ALL_BETWEEN_DATES_WITH_VIRUS) != NULL);
+        fprintf(stdout, "Total number of patients counted: %d\n~$:", iterator.counter);
+    }else {
+        iterator.country = country;
+        while (hashIterateValues(&iterator, COUNT_ALL_BETWEEN_DATES_WITH_VIRUS_AND_COUNTRY) != NULL);
+        fprintf(stdout, "Total number of patients counted: %d\n~$:", iterator.counter);
+    }
 }
 
 
@@ -44,16 +56,38 @@ void diseaseFrequency(CmdManager* manager, char* virusName, Date* date1, Date* d
  * number of diseased cases during the period [date1, date2], if that is specified.
  * Cmd Args: k country [date1, date2]
  * */
-void topk_Diseases(){
-
+void topk_Diseases(CmdManager* manager, int k, char* country, Date* date1, Date* date2){
+    HashElement iterator = hashITERATOR(manager->countryHashTable);
+    iterator.country = country;
+    iterator.k = k;
+    iterator.maxHeap = createHeapNode(NULL, 0);
+    if(date1 != NULL && date2 != NULL) {
+        iterator.date1 = date1;
+        iterator.date2 = date2;
+        while (hashIterateValues(&iterator, TOP_K_DISEASES_DATE) != NULL);
+    }else {
+        while (hashIterateValues(&iterator, TOP_K_DISEASES) != NULL);
+    }
+    freeHeapTree(iterator.maxHeap);
 }
 
 /**
  * For the specified disease print the countries with the top k number of cases
  * Cmd Args: k disease [date1, date2]
  * */
-void topk_Countries(){
-
+void topk_Countries(CmdManager* manager, int k, char* disease, Date* date1, Date* date2){
+    HashElement iterator = hashITERATOR(manager->diseaseHashTable);
+    iterator.virus = disease;
+    iterator.k = k;
+    iterator.maxHeap = createHeapNode(NULL, 0);
+    if(date1 != NULL && date2 != NULL) {
+        iterator.date1 = date1;
+        iterator.date2 = date2;
+        while (hashIterateValues(&iterator, TOP_K_COUNTRIES_DATE) != NULL);
+    }else {
+        while (hashIterateValues(&iterator, TOP_K_COUNTRIES) != NULL);
+    }
+    freeHeapTree(iterator.maxHeap);
 }
 
 /**
@@ -106,7 +140,7 @@ void numCurrentPatients(CmdManager* manager, char* disease){
             while (bucket != NULL){
                 for(int i = 0; i < bucket->numOfEntries; i++){
                     if(strcmp(disease, bucket->entry[i].data)==0){
-                        int patientsNum = countPatients(bucket->entry[i].tree, COUNT_HOSPITALISED);
+                        int patientsNum = countPatients(bucket->entry[i].tree, COUNT_HOSPITALISED, NULL);
                         fprintf(stdout, "The number of the currently hospitalised patients for %s is: %d\n~$:", disease, patientsNum);
                         diseaseExists = 1;
                         break;
@@ -152,8 +186,7 @@ void exitMonitor(CmdManager* manager){
 void commandServer(CmdManager* manager){
     char* command = NULL;
     char* line = NULL;
-    char* arg1 = NULL;
-    char* arg2 = NULL;
+
     size_t length = 0;
 
     fprintf(stdout,"~$:");
@@ -171,41 +204,120 @@ void commandServer(CmdManager* manager){
         command = strtok(line, " ");
 
         if(strcmp(command, "/globalDiseaseStats") == 0) {
-            Date date1, date2;
-            arg1 = strtok(NULL, " ");
-            arg2 = strtok(NULL, "\n");
+
+            char* arg1 = strtok(NULL, " ");
+            char* arg2 = strtok(NULL, " ");
+
             if (arg1 != NULL && arg2 != NULL){
-                date1.day = atoi(strtok(arg1, "-"));
-                date1.month = atoi(strtok(NULL, "-"));
-                date1.year = atoi(strtok(NULL, "-"));
-                date2.day = atoi(strtok(arg2, "-"));
-                date2.month = atoi(strtok(NULL, "-"));
-                date2.year = atoi(strtok(NULL, "-"));
-                globalDiseaseStats(manager, &date1, &date2);
+
+                Date* date1 = malloc(sizeof(struct Date));
+                Date* date2 = malloc(sizeof(struct Date));
+
+                date1->day = atoi(strtok(arg1, "-"));
+                date1->month = atoi(strtok(NULL, "-"));
+                date1->year = atoi(strtok(NULL, "-"));
+                date2->day = atoi(strtok(arg2, "-"));
+                date2->month = atoi(strtok(NULL, "-"));
+                date2->year = atoi(strtok(NULL, "-"));
+                globalDiseaseStats(manager, date1, date2);
+
+                free(date1);
+                free(date2);
+
             }else if (arg1 == NULL && arg2 == NULL){
                 globalDiseaseStats(manager, 0-0-0, 0-0-0);
-            }else if(arg1 != NULL && arg2 == NULL ){
+            }else if(arg2 == NULL && arg1 != NULL){
                 fprintf(stderr, "Missing date2. Please try again...\n~$:");
             }
+
+
         } else if(strcmp(command, "/diseaseFrequency") == 0){
-            //diseaseFrequency(manager, virusName, Date* date1, Date* date2, char* country);
+            Date* date1;
+            Date* date2;
+            date1 = malloc(sizeof(struct Date));
+            date2 = malloc(sizeof(struct Date));
+
+            char* virusName = strtok(NULL, " ");   //virus
+            char* arg2 = strtok(NULL, " ");   //date1
+            char* arg3 = strtok(NULL, " ");   //date2
+            char* country = strtok(NULL, " ");
+
+            date1->day = atoi(strtok(arg2, "-"));
+            date1->month = atoi(strtok(NULL, "-"));
+            date1->year = atoi(strtok(NULL, "-"));
+            date2->day = atoi(strtok(arg3, "-"));
+            date2->month = atoi(strtok(NULL, "-"));
+            date2->year = atoi(strtok(NULL, "-"));
+
+            if(country != NULL){
+                diseaseFrequency(manager, virusName, date1, date2, country);
+            }else
+                diseaseFrequency(manager, virusName, date1, date2, NULL);
+
+            free(date1);
+            free(date2);
+
         } else if(strcmp(command, "/topk_Diseases") == 0){
-            topk_Diseases();
+
+            int k = atoi(strtok(NULL, " "));
+            char* country = strtok(NULL, " ");
+            char* arg3 = strtok(NULL, " ");
+            char* arg4 = strtok(NULL, " ");
+
+            if (arg3 != NULL && arg4 != NULL){
+                Date* date1 = malloc(sizeof(struct Date));
+                Date* date2 = malloc(sizeof(struct Date));
+                date1->day = atoi(strtok(arg3, "-"));
+                date1->month = atoi(strtok(NULL, "-"));
+                date1->year = atoi(strtok(NULL, "-"));
+                date2->day = atoi(strtok(arg4, "-"));
+                date2->month = atoi(strtok(NULL, "-"));
+                date2->year = atoi(strtok(NULL, "-"));
+                topk_Diseases(manager, k, country, date1, date2);
+                free(date1);
+                free(date2);
+
+            }else if (arg3 == NULL && arg4 == NULL){
+                topk_Diseases(manager, k, country, NULL, NULL);
+            }else if(arg3 != NULL && arg4 == NULL ){
+                fprintf(stderr, "Missing date2. Please try again...\n~$:");
+            }
+
         } else if(strcmp(command, "/topk_Countries") == 0){
-            topk_Countries();
+
+            int k = atoi(strtok(NULL, " "));
+            char* disease = strtok(NULL, " ");
+            char* arg3 = strtok(NULL, " ");
+            char* arg4 = strtok(NULL, " ");
+
+            if (arg3 != NULL && arg4 != NULL){
+                Date* date1 = malloc(sizeof(struct Date));
+                Date* date2 = malloc(sizeof(struct Date));
+                date1->day = atoi(strtok(arg3, "-"));
+                date1->month = atoi(strtok(NULL, "-"));
+                date1->year = atoi(strtok(NULL, "-"));
+                date2->day = atoi(strtok(arg4, "-"));
+                date2->month = atoi(strtok(NULL, "-"));
+                date2->year = atoi(strtok(NULL, "-"));
+                topk_Countries(manager, k, disease, date1, date2);
+
+                free(date1);
+                free(date2);
+
+            }else if (arg3 == NULL && arg4 == NULL){
+                topk_Countries(manager, k, disease, NULL, NULL);
+            }else if(arg3 != NULL && arg4 == NULL ){
+                fprintf(stderr, "Missing date2. Please try again...\n~$:");
+            }
         } else if(strcmp(command, "/recordPatientExit") == 0){
-            arg1 = strtok(NULL, "\n");
-            recordPatientExit(manager, arg1);
+            char* arguments = strtok(NULL, "\n");
+            recordPatientExit(manager, arguments);
         } else if(strcmp(command, "/numCurrentPatients") == 0){  //the query is called with the disease argument defined
-            arg1 = strtok(NULL, "\n");
-            numCurrentPatients(manager, arg1);
+            char* disease = strtok(NULL, "\n");
+            numCurrentPatients(manager, disease);
         } else if(strcmp(command, "/insertPatientRecord") == 0){
-            arg1 = strtok(NULL, "\n");
-            insertPatientRecord(manager, arg1);
-        } else if(strcmp(command, "/exit") == 0){
-            exitMonitor(manager);
-        } else if(strcmp(command, "/help") == 0) {
-            helpDesc();
+            char* arguments = strtok(NULL, "\n");
+            insertPatientRecord(manager, arguments);
         } else{
             fprintf(stdout, "The command you have entered does not exist.\n You can see the available commands by hitting /help.\n");
         }

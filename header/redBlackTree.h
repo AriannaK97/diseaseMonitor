@@ -56,14 +56,14 @@ void freeRbNodesRec(rbTree* tree, rbNode* node);
 
 void freeRbTree(rbTree* tree);
 
-int rbNodeCounter(rbNode* root, rbNode* nil, int operationCall);
+int rbNodeCounter(rbNode* root, rbNode* nil, int operationCall, HashElement* hashIterator);
 
-int countPatients(rbTree* tree, int operationCall);
+int countPatients(rbTree* tree, int operationCall, HashElement* hashIterator);
 
-int rbNodeCounter_BetweenDates(rbNode* root, rbNode* nil, int operationCall, Date* date1, Date* date2);
+int rbNodeCounter_BetweenDates(rbNode* root, rbNode* nil, int operationCall, HashElement* hashIterator);
 
 bool checkDateSpace(PatientCase* patient, Date* date1, Date* date2);
 
-int countPatients_BetweenDates(rbTree* tree, int operationCall, Date* date1, Date* date2);
+int countPatients_BetweenDates(rbTree* tree, int operationCall, HashElement* hashIterator);
 
 #endif //DISEASEMONITOR_REDBLACKTREE_H

@@ -10,6 +10,7 @@
 #include <string.h>
 #include "list_lib.h"
 #include "redBlackTree.h"
+#include "binaryMaxHeap.h"
 
 #define DATA_SPACE 32
 #define REMOVE 1
@@ -18,6 +19,12 @@
 #define COUNT_ALL 4
 #define COUNT_HOSPITALISED 5
 #define COUNT_ALL_BETWEEN_DATES 6
+#define COUNT_ALL_BETWEEN_DATES_WITH_VIRUS 7
+#define COUNT_ALL_BETWEEN_DATES_WITH_VIRUS_AND_COUNTRY 8
+#define TOP_K_DISEASES 9
+#define TOP_K_DISEASES_DATE 10
+#define TOP_K_COUNTRIES 11
+#define TOP_K_COUNTRIES_DATE 12
 
 typedef struct BucketEntry{
     char* data;
@@ -48,11 +55,15 @@ typedef struct HashElement{
     int counter;    //used when we count all the entries in the system
     Date* date1;    //for operations requiring date boundaries
     Date* date2;
+    char* country; //for operations requiring country
+    char* virus;   //for operations requiring the virus for the search
+    int k;         //for the top k queries
+    HeapNode* maxHeap; //for the top k queries
 }HashElement;
 
 
 // Inititalize hashtable iterator on hashtable 'ht'
-#define hashITERATOR(ht) {ht, 0, ht->table[0], 0, 0}
+#define hashITERATOR(ht) {ht, 0, ht->table[0], 0, 0, 0, 0, 0, 0, 0}
 
 char err_ptr;
 //void* hashERROR = &err_ptr; // Data pointing to hashERROR are returned in case of error
@@ -83,8 +94,8 @@ void applyOperationOnHashTable(HashTable* hTable, int operationCall);
 
 void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* hTable, unsigned long key, Node* listNode);
 
-int iterateBucketData(Bucket* bucket, int operationCall);
+int iterateBucketData(Bucket* bucket, int operationCall, HashElement* hashIterator);
 
-int iterateBucketData_BetweenDates(Bucket* bucket, int operationCall, Date* date1, Date* date2);
+int iterateBucketData_BetweenDates(Bucket* bucket, int operationCall, HashElement* hashIterator);
 
 #endif //DISEASEMONITOR_HASHTABLE_H

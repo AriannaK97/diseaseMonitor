@@ -202,54 +202,99 @@ void printRbTree(rbNode* root, int depth){
 
 }
 
-int countPatients(rbTree* tree, int operationCall){
-    return rbNodeCounter(tree->root, tree->nil, operationCall);
+int countPatients(rbTree* tree, int operationCall, HashElement* hashIterator){
+    return rbNodeCounter(tree->root, tree->nil, operationCall, hashIterator);
 }
 
 bool checkDateSpace(PatientCase* patient, Date* date1, Date* date2){
-    if (compare_dates(patient->entryDate, date1)==1 && compare_dates(patient->entryDate, date2) == -1)
+    if (compare_dates(patient->entryDate, date1) >=0 && compare_dates(patient->entryDate, date2) <= 0)
         return true;
     return false;
 }
 
-int countPatients_BetweenDates(rbTree* tree, int operationCall, Date* date1, Date* date2){
-    return rbNodeCounter_BetweenDates(tree->root, tree->nil, operationCall, date1, date2);
+int countPatients_BetweenDates(rbTree* tree, int operationCall, HashElement* hashIterator){
+    return rbNodeCounter_BetweenDates(tree->root, tree->nil, operationCall, hashIterator);
 }
 
-int rbNodeCounter_BetweenDates(rbNode* root, rbNode* nil, int operationCall, Date* date1, Date* date2){
+int rbNodeCounter_BetweenDates(rbNode* root, rbNode* nil, int operationCall, HashElement* hashIterator){
     if(root == NULL || root == nil){
         return 0;
     }
 
     int counter = 0;
-    counter += rbNodeCounter_BetweenDates(root->left, nil, operationCall, date1, date2);
+    counter += rbNodeCounter_BetweenDates(root->left, nil, operationCall, hashIterator);
     PatientCase* patient = root->listNodeEntry->item;
-    if(operationCall == COUNT_ALL_BETWEEN_DATES){
-        if(checkDateSpace(patient, date1, date2))
+    if(operationCall == COUNT_ALL_BETWEEN_DATES || operationCall == COUNT_ALL_BETWEEN_DATES_WITH_VIRUS){
+        if(checkDateSpace(patient, hashIterator->date1, hashIterator->date2))
             counter++;
+    } else if (operationCall == COUNT_ALL_BETWEEN_DATES_WITH_VIRUS_AND_COUNTRY){
+        if(checkDateSpace(patient, hashIterator->date1, hashIterator->date2)
+            && strcmp(patient->country, hashIterator->country) == 0){
+            counter++;
+        }
+    } else if (operationCall == TOP_K_DISEASES_DATE){
+        if(checkDateSpace(patient, hashIterator->date1, hashIterator->date2)){
+            HeapNode* newNode;
+            if((newNode = ifNodeExists(hashIterator->maxHeap, patient->virus))!=NULL){
+                newNode->dataSum += 1;
+            }else{
+                newNode = createHeapNode(patient->virus, 1);
+                hashIterator->maxHeap = insertHeap(hashIterator->maxHeap, newNode);
+            }
+            maxHeapify(hashIterator->maxHeap);
+        }
+    } else if (operationCall == TOP_K_COUNTRIES_DATE){
+        if(checkDateSpace(patient, hashIterator->date1, hashIterator->date2)){
+            HeapNode* newNode;
+            if((newNode = ifNodeExists(hashIterator->maxHeap, patient->country))!=NULL){
+                newNode->dataSum += 1;
+            }else{
+                newNode = createHeapNode(patient->country, 1);
+                hashIterator->maxHeap = insertHeap(hashIterator->maxHeap, newNode);
+            }
+            maxHeapify(hashIterator->maxHeap);
+        }
     }
-    counter += rbNodeCounter_BetweenDates(root->right, nil, operationCall, date1, date2);
+    counter += rbNodeCounter_BetweenDates(root->right, nil, operationCall, hashIterator);
 
     return counter;
 }
 
 
-int rbNodeCounter(rbNode* root, rbNode* nil, int operationCall){
+int rbNodeCounter(rbNode* root, rbNode* nil, int operationCall, HashElement* hashIterator){
     if(root == NULL || root == nil){
         return 0;
     }
 
     int counter = 0;
 
-    counter += rbNodeCounter(root->left, nil, operationCall);
+    counter += rbNodeCounter(root->left, nil, operationCall, hashIterator);
     PatientCase* patient = root->listNodeEntry->item;
     if(operationCall == COUNT_HOSPITALISED){
         if(patient->exitDate->year == 0 && patient->exitDate->day == 0 && patient->exitDate->month == 0)
             counter++;
     }else if(operationCall == COUNT_ALL) {
         counter++;
+    }else if (operationCall == TOP_K_DISEASES){
+        HeapNode* newNode;
+        if((newNode = ifNodeExists(hashIterator->maxHeap, patient->virus))!=NULL){
+            newNode->dataSum += 1;
+        }else{
+            newNode = createHeapNode(patient->virus, 1);
+            hashIterator->maxHeap = insertHeap(hashIterator->maxHeap, newNode);
+        }
+        maxHeapify(hashIterator->maxHeap);
+    }else if (operationCall == TOP_K_COUNTRIES){
+        HeapNode* newNode;
+        if((newNode = ifNodeExists(hashIterator->maxHeap, patient->country))!=NULL){
+            newNode->dataSum += 1;
+        }else{
+            newNode = createHeapNode(patient->country, 1);
+            hashIterator->maxHeap = insertHeap(hashIterator->maxHeap, newNode);
+        }
+        maxHeapify(hashIterator->maxHeap);
     }
-    counter += rbNodeCounter(root->right, nil, operationCall);
+    counter += rbNodeCounter(root->right, nil, operationCall, hashIterator);
 
     return counter;
 }

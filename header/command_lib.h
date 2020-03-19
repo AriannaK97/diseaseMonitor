@@ -12,9 +12,9 @@ void globalDiseaseStats(CmdManager* manager, Date* date1, Date* date2);
 
 void diseaseFrequency(CmdManager* manager, char* virusName, Date* date1, Date* date2, char* country);
 
-void topk_Diseases();
+void topk_Diseases(CmdManager* manager, int k, char* country, Date* date1, Date* date2);
 
-void topk_Countries();
+void topk_Countries(CmdManager* manager, int k, char* disease, Date* date1, Date* date2);
 
 void insertPatientRecord(CmdManager* manager, char* buffer);
 

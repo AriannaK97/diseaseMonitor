@@ -259,28 +259,42 @@ void hashListValues(HashTable* hTable, void** v, size_t len){
     }
 }
 
-int iterateBucketData_BetweenDates(Bucket* bucket, int operationCall, Date* date1, Date* date2){
+int iterateBucketData_BetweenDates(Bucket* bucket, int operationCall, HashElement* hashIterator){
     BucketEntry *iterator = bucket->entry;
+    int counter = 0;
 
-    if(operationCall == SEARCH){
-        for(int i = 0; i < bucket->numOfEntries; i++){
-            if(iterator[i].tree != NULL){
-                searchRbNode((rbTree*)iterator[i].tree, &date1);
-            }
-        }
-    }else if(operationCall == COUNT_ALL_BETWEEN_DATES){
-        int counter = 0;
-        for(int i = 0; i < bucket->numOfEntries; i++){
-            if(iterator[i].tree != NULL){
-                counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, date1, date2);
+    for(int i = 0; i < bucket->numOfEntries; i++){
+        if(iterator[i].tree != NULL){
+            if(operationCall == SEARCH){
+                searchRbNode((rbTree*)iterator[i].tree, hashIterator->date1);
+            }else if (operationCall == COUNT_ALL_BETWEEN_DATES){
+                counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, hashIterator);
                 fprintf(stdout,"The number of patients monitored for %s: %d\n",iterator[i].data, counter);
+            }else if(operationCall == COUNT_ALL_BETWEEN_DATES_WITH_VIRUS || operationCall == COUNT_ALL_BETWEEN_DATES_WITH_VIRUS_AND_COUNTRY){
+                if(strcmp(iterator[i].data, hashIterator->virus)==0){
+                    counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, hashIterator);
+                    fprintf(stdout,"The number of patients monitored for %s: %d\n",iterator[i].data, counter);
+                }
+            }else if(operationCall == TOP_K_DISEASES_DATE){
+                if(strcmp(iterator[i].data, hashIterator->country)==0){
+                    counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, hashIterator);
+                    fprintf(stdout,"The top %d diseases monitored for %s: \n",hashIterator->k, iterator[i].data);
+                    printLevelOrder(hashIterator->maxHeap, hashIterator->k);
+                }
+            }else if (operationCall == TOP_K_COUNTRIES_DATE){
+                if(strcmp(iterator[i].data, hashIterator->virus)==0){
+                    counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, hashIterator);
+                    fprintf(stdout,"The top %d countries monitored for the disease %s: \n",hashIterator->k, iterator[i].data);
+                    printLevelOrder(hashIterator->maxHeap, hashIterator->k);
+                }
             }
         }
-        return counter;
     }
+    return counter;
 }
 
-int iterateBucketData(Bucket* bucket, int operationCall){
+
+int iterateBucketData(Bucket* bucket, int operationCall, HashElement* hashIterator){
     BucketEntry *iterator = bucket->entry;
 
     Date searchDate;
@@ -288,47 +302,37 @@ int iterateBucketData(Bucket* bucket, int operationCall){
     searchDate.month = 05;
     searchDate.year = 2012;
 
-    /*if(operationCall == SEARCH){
-        for(int i = 0; i < bucket->numOfEntries; i++){
-            if(iterator[i].tree != NULL){
-                searchRbNode((rbTree*)iterator[i].tree, &searchDate);
-            }
-        }
-    }else */
-    if(operationCall == COUNT_HOSPITALISED || operationCall == COUNT_ALL ) {
-        int counter = 0;
-        for (int i = 0; i < bucket->numOfEntries; i++) {
-            if (iterator[i].tree != NULL) {
-                counter += countPatients((rbTree *) iterator[i].tree, operationCall);
+    int counter = 0;
+    int diseaseExists = 0;
+    for (int i = 0; i < bucket->numOfEntries; i++) {
+        if (iterator[i].tree != NULL) {
+            if(operationCall == COUNT_HOSPITALISED || operationCall == COUNT_ALL){
+                counter += countPatients((rbTree *) iterator[i].tree, operationCall,NULL);
                 fprintf(stdout, "The number of patients monitored for %s: %d\n", iterator[i].data, counter);
-            }
-        }
-        return counter;
-    }
-    /*else if(operationCall == COUNT_ALL_BETWEEN_DATES){
-        int counter = 0;
-        for (int i = 0; i < bucket->numOfEntries; i++) {
-            if (iterator[i].tree != NULL) {
-                counter += countPatients_BetweenDates((rbTree *) iterator[i].tree, operationCall);
-                fprintf(stdout, "The number of patients monitored for %s: %d\n", iterator[i].data, counter);
-            }
-        }
-        return counter;
-
-    }*/
-    else if(operationCall == PRINT){
-        for(int i = 0; i < bucket->numOfEntries; i++){
-            fprintf(stdout,"%s\n",iterator[i].data);
-        }
-    }else if(operationCall == REMOVE){
-        for(int i = 0; i < bucket->numOfEntries; i++){
-            if(bucket != NULL){
-                if(iterator[i].tree != NULL){
-                    freeRbTree((rbTree*)iterator[i].tree);
+            }else if(operationCall == PRINT) {
+                fprintf(stdout, "%s\n", iterator[i].data);
+            }else if(operationCall == TOP_K_DISEASES){
+                if(strcmp(iterator[i].data, hashIterator->country)==0){
+                    counter += countPatients((rbTree*)iterator[i].tree, operationCall, hashIterator);
+                    fprintf(stdout,"The top %d diseases monitored for %s: \n",hashIterator->k, iterator[i].data);
+                    printLevelOrder(hashIterator->maxHeap, hashIterator->k);
+                }
+            }else if(operationCall == TOP_K_COUNTRIES){
+                if(strcmp(iterator[i].data, hashIterator->virus)==0){
+                    counter += countPatients((rbTree*)iterator[i].tree, operationCall, hashIterator);
+                    fprintf(stdout,"The top %d countries monitored for %s: \n",hashIterator->k, iterator[i].data);
+                    printLevelOrder(hashIterator->maxHeap, hashIterator->k);
+                }
+            }else if(operationCall == REMOVE){
+                if(bucket != NULL){
+                    if(iterator[i].tree != NULL){
+                        freeRbTree((rbTree*)iterator[i].tree);
+                    }
                 }
             }
         }
     }
+    return counter;
 }
 
 
@@ -348,9 +352,11 @@ Bucket* hashIterate(HashElement* iterator, int operationCall){
     Bucket* bucket = iterator->elem;
     if(bucket){
         if(iterator->date1 == 0 && iterator->date2 == 0){
-            iterator->counter += iterateBucketData(bucket, operationCall);
+            /*iterate bucket for querys without defined date gap and and for delete*/
+            iterator->counter += iterateBucketData(bucket, operationCall, iterator);
         } else {
-            iterator->counter += iterateBucketData_BetweenDates(bucket, operationCall, iterator->date1, iterator->date2);
+            /*iterate in buckets for queries with defined date gap*/
+            iterator->counter += iterateBucketData_BetweenDates(bucket, operationCall, iterator);
         }
         iterator->elem = bucket->next;
     }
