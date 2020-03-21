@@ -68,7 +68,6 @@ void topk_Diseases(CmdManager* manager, int k, char* country, Date* date1, Date*
     }else {
         while (hashIterateValues(&iterator, TOP_K_DISEASES) != NULL);
     }
-    fprintf(stdout, "~$:");
     freeHeapTree(iterator.maxHeap);
 }
 
@@ -88,7 +87,6 @@ void topk_Countries(CmdManager* manager, int k, char* disease, Date* date1, Date
     }else {
         while (hashIterateValues(&iterator, TOP_K_COUNTRIES) != NULL);
     }
-    fprintf(stdout, "~$:");
     freeHeapTree(iterator.maxHeap);
 }
 
@@ -113,19 +111,16 @@ void insertPatientRecord(CmdManager* manager, char* args){
  * Cmd Args: recordID exitDate
  * */
 void recordPatientExit(CmdManager* manager, char* args){
-    char* recordId;
+    int recordId;
     Date exitDate;
 
-    recordId = strtok(args, " ");
+    recordId = atoi(strtok(args, " "));
     exitDate.day = atoi(strtok(NULL,"-"));
     exitDate.month = atoi(strtok(NULL, "-"));
     exitDate.year = atoi(strtok(NULL, "-"));
 
-    if(searchNodeForRecordID_ExitDateUpdate(manager->patientList, recordId, &exitDate))
-        fprintf(stdout, "Patient's %s exit date, successfully updated.\n~$:", recordId);
-    else{
-        fprintf(stderr, "Could not update exit date\n~$:");
-    }
+    searchNodeForRecordID_ExitDateUpdate(manager->patientList, recordId, &exitDate);
+    fprintf(stdout,"~$:");
 }
 
 
@@ -324,7 +319,7 @@ void commandServer(CmdManager* manager){
             char* arguments = strtok(NULL, "\n");
             insertPatientRecord(manager, arguments);
         } else{
-            fprintf(stdout, "The command you have entered does not exist.\n You can see the available commands by hitting /help.\n~$:");
+            fprintf(stdout, "The command you have entered does not exist.\n You can see the available commands by hitting /help.\n");
         }
 
     }

@@ -84,7 +84,7 @@ void maxHeapify(HeapNode* A){
     HeapNode* left;
     HeapNode* right;
     HeapNode* largest;
-    largest = A;
+
     left = getLeft(A);
     right = getRight(A);
 

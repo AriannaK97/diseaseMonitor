@@ -194,7 +194,7 @@ void printRbTree(rbNode* root, int depth){
     printRbTree(root->left, depth+1);
     PatientCase* patient;
     patient = root->listNodeEntry->item;
-    fprintf(stdout,"depth = %d, case number: %s | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
+    fprintf(stdout,"depth = %d, case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
                    "exportDate: %d-%d-%d\n",depth, patient->caseNum, patient->name, patient->surname, patient->virus,
             patient->country, patient->entryDate->day, patient->entryDate->month, patient->entryDate->year,
             patient->exitDate->day, patient->exitDate->month, patient->exitDate->year);
@@ -288,13 +288,11 @@ int rbNodeCounter(rbNode* root, rbNode* nil, int operationCall, HashElement* has
         HeapNode* newNode;
         if((newNode = ifNodeExists(hashIterator->maxHeap, patient->country))!=NULL){
             newNode->dataSum += 1;
-            maxHeapify(hashIterator->maxHeap);
         }else{
             newNode = createHeapNode(patient->country, 1);
             hashIterator->maxHeap = insertHeap(hashIterator->maxHeap, newNode);
-            maxHeapify(hashIterator->maxHeap);
         }
-
+        maxHeapify(hashIterator->maxHeap);
     }
     counter += rbNodeCounter(root->right, nil, operationCall, hashIterator);
 
@@ -315,7 +313,7 @@ rbNode* searchRbNodeRec(rbNode* root, rbNode* nil, void* key){
         searchRbNodeRec(root->left, nil, key);
         PatientCase* patient = root->listNodeEntry->item;
         fprintf(stdout,
-                "case number: %s | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
+                "case number: %d | name: %s | surname: %s | virus: %s | country: %s | importDate: %d-%d-%d | "
                 "exportDate: %d-%d-%d\n", patient->caseNum, patient->name, patient->surname, patient->virus,
                 patient->country, patient->entryDate->day, patient->entryDate->month, patient->entryDate->year,
                 patient->exitDate->day, patient->exitDate->month, patient->exitDate->year);

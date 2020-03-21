@@ -107,23 +107,22 @@ PatientCase* getPatient(char* buffer){
     token = strtok(buffer, delim);
     while(tokenCase != 12 && token != NULL){
         if (tokenCase == 0){
-            newPatient->caseNum = malloc(strlen(token)*sizeof(char));
-            strcpy(newPatient->caseNum, token);
+            newPatient->caseNum = atoi(token);
             token = strtok(NULL, delim);
         } else if (tokenCase == 1){
-            newPatient->name = malloc(strlen(token)*sizeof(char));
+            newPatient->name = malloc(DATA_SPACE*sizeof(char));
             strcpy(newPatient->name, token);
             token = strtok(NULL, delim);
         }else if (tokenCase == 2){
-            newPatient->surname = malloc(strlen(token)*sizeof(char));
+            newPatient->surname = malloc(DATA_SPACE*sizeof(char));
             strcpy(newPatient->surname, token);
             token = strtok(NULL, delim);
         }else if (tokenCase == 3){
-            newPatient->virus = malloc(strlen(token)*sizeof(char));
+            newPatient->virus = malloc(DATA_SPACE*sizeof(char));
             strcpy(newPatient->virus, token);
             token = strtok(NULL, delim);
         }else if (tokenCase == 4){
-            newPatient->country = malloc(strlen(token)*sizeof(char));
+            newPatient->country = malloc(DATA_SPACE*sizeof(char));
             strcpy(newPatient->country, token);
             token = strtok(NULL, dateDelim);
         }else if (tokenCase == 5){
@@ -167,7 +166,7 @@ PatientCase* getPatient(char* buffer){
 bool writeEntry(char* buffer, List* patientList, HashTable* diseaseHashTable, HashTable* countryHashTable, int bucketSize){
     PatientCase* newPatient;
     Node* newNode;
-
+    //printf("%s\n", buffer);
     newPatient = getPatient(buffer);
     newNode = nodeInit(newPatient);
 
