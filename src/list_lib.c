@@ -33,6 +33,19 @@ void push(Node* listNode, List* linkedList){
 }
 
 /**
+ * List memory deallocation for auxiliary list in heap
+ * */
+void heapListMemoryDeallock(List* linkedList){
+    Node* listNode = linkedList->head;
+    while(listNode != NULL){
+        linkedList->head = linkedList->head->next;
+        free(listNode);
+        listNode = linkedList->head;
+    }
+    free(linkedList);
+}
+
+/**
  * List memory deallocation
  * */
 void listMemoryDeallock(List* linkedList){
@@ -96,6 +109,22 @@ bool searchNodeForRecordID_ExitDateUpdate(List* linkedList, char* key, Date* exi
     fprintf(stderr, "Could not find the patient with record id %s in the system\n", key);
     return false;
 }
+
+bool updateListVirusSum(List* linkedList, char* key){
+    Node* node = linkedList->head;
+    HeapNode* currentContent;
+    while (node != NULL){
+        currentContent = node->item;
+        if (strcmp(currentContent->data, key) == 0){
+            currentContent->dataSum++;
+            return true;
+        }
+        node = node->next;
+    }
+    return false;
+}
+
+
 
 /**
  * Search for duplicates in list

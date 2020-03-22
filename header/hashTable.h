@@ -25,6 +25,10 @@
 #define TOP_K_DISEASES_DATE 10
 #define TOP_K_COUNTRIES 11
 #define TOP_K_COUNTRIES_DATE 12
+#define GET_HEAP_NODES_VIRUS 13
+#define GET_HEAP_NODES_COUNTRY 14
+#define GET_HEAP_NODES_VIRUS_DATES 15
+#define GET_HEAP_NODES_COUNTRY_DATES 16
 
 typedef struct BucketEntry{
     char* data;
@@ -58,7 +62,8 @@ typedef struct HashElement{
     char* country; //for operations requiring country
     char* virus;   //for operations requiring the virus for the search
     int k;         //for the top k queries
-    HeapNode* maxHeap; //for the top k queries
+    Heap* maxHeap; //for the top k queries
+    List* heapNodes;    //nodes collected for the heap
 }HashElement;
 
 
@@ -75,8 +80,6 @@ HashTable* hashCreate(unsigned int);
 void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSize, Node* listNode);
 
 void* hashGet(HashTable*, unsigned long);
-
-void hashListValues(HashTable*, void**, size_t);
 
 Bucket* hashIterate(HashElement*, int operationCall);
 

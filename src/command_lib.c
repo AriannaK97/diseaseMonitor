@@ -60,16 +60,26 @@ void topk_Diseases(CmdManager* manager, int k, char* country, Date* date1, Date*
     HashElement iterator = hashITERATOR(manager->countryHashTable);
     iterator.country = country;
     iterator.k = k;
-    iterator.maxHeap = createHeapNode(NULL, 0);
+    Heap* maxHeap = createHeap();
     if(date1 != NULL && date2 != NULL) {
         iterator.date1 = date1;
         iterator.date2 = date2;
-        while (hashIterateValues(&iterator, TOP_K_DISEASES_DATE) != NULL);
+        while (hashIterateValues(&iterator, GET_HEAP_NODES_COUNTRY_DATES) != NULL);
     }else {
-        while (hashIterateValues(&iterator, TOP_K_DISEASES) != NULL);
+        while (hashIterateValues(&iterator, GET_HEAP_NODES_COUNTRY) != NULL);
     }
+    if(iterator.heapNodes->head == NULL){
+        fprintf(stdout, "There are no disease cases for %s\n", country);
+    }
+    Node* currentNode = iterator.heapNodes->head;
+    while(currentNode != NULL){
+        maxHeap->root = insertHeap(maxHeap, (HeapNode*)currentNode->item);
+        currentNode = currentNode->next;
+    }
+    printLevelOrder(maxHeap->root, k);
     fprintf(stdout, "~$:");
-    freeHeapTree(iterator.maxHeap);
+    heapListMemoryDeallock(iterator.heapNodes);
+    free(maxHeap);
 }
 
 /**
@@ -80,16 +90,27 @@ void topk_Countries(CmdManager* manager, int k, char* disease, Date* date1, Date
     HashElement iterator = hashITERATOR(manager->diseaseHashTable);
     iterator.virus = disease;
     iterator.k = k;
-    iterator.maxHeap = createHeapNode(NULL, 0);
+    Heap* maxHeap = createHeap();
     if(date1 != NULL && date2 != NULL) {
         iterator.date1 = date1;
         iterator.date2 = date2;
-        while (hashIterateValues(&iterator, TOP_K_COUNTRIES_DATE) != NULL);
+        while (hashIterateValues(&iterator, GET_HEAP_NODES_VIRUS_DATES) != NULL);
     }else {
-        while (hashIterateValues(&iterator, TOP_K_COUNTRIES) != NULL);
+        while (hashIterateValues(&iterator, GET_HEAP_NODES_VIRUS) != NULL);
     }
+    if(iterator.heapNodes->head == NULL){
+        fprintf(stdout, "There are no countries with cases of %s\n", disease);
+    }
+    Node* currentNode = iterator.heapNodes->head;
+    while(currentNode != NULL){
+        maxHeap->root = insertHeap(maxHeap, (HeapNode*)currentNode->item);
+        currentNode = currentNode->next;
+    }
+    printLevelOrder(maxHeap->root, k);
     fprintf(stdout, "~$:");
-    freeHeapTree(iterator.maxHeap);
+
+    freeHeapTree(maxHeap);
+    heapListMemoryDeallock(iterator.heapNodes);
 }
 
 /**
@@ -97,7 +118,6 @@ void topk_Countries(CmdManager* manager, int k, char* disease, Date* date1, Date
  * Cmd Args: recordID patientFirstName patientLastName diseaseID entryDate [exitDate]
  * */
 void insertPatientRecord(CmdManager* manager, char* args){
-    size_t maxLength = 256;
 
     if(writeEntry(args, manager->patientList, manager->diseaseHashTable,
             manager->countryHashTable, manager->bucketSize))

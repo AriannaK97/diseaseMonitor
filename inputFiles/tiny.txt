@@ -5,3 +5,10 @@
 19 Jason Meyer EVD Greece 29-10-2002 24-07-2019
 12 Peggy Burgess MERS-COV France 20-05-2009 11-11-2019
 52 Celia Deblanc POX Italy 20-05-2009 -
+65 James Hawthorn MERS-COV Egypt 23-7-2010 -
+78 James Hawthorn MERS-COV Spain 23-7-2010 -
+83 James Hawthorn MERS-COV Australia 23-7-2010 -
+45 James Hawthorn MERS-COV Greece 23-7-2010 -
+99 James Hawthorn MERS-COV Australia 23-7-2010 -
+69 James Hawthorn MERS-COV Australia 23-7-2010 -
+87 James Hawthorn MERS-COV Australia 23-7-2010 -

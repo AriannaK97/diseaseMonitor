@@ -20,6 +20,7 @@ int main(int argc, char** argv) {
             arguments->diseaseHashtableNumOfEntries,arguments->countryHashTableNumOfEntries, arguments->bucketSize);
 
     free(arguments);
+    fclose(patientRecordsFile);
     //printList(cmdManager->patientList);
     applyOperationOnHashTable(cmdManager->diseaseHashTable, PRINT);
     applyOperationOnHashTable(cmdManager->countryHashTable, PRINT);

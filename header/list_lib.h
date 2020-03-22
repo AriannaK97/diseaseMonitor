@@ -34,4 +34,8 @@ bool compareListItemPatient(PatientCase* patient, char* key);
 
 void nodeItemDeallock(PatientCase* item);
 
+bool updateListVirusSum(List* linkedList, char* key);
+
+void heapListMemoryDeallock(List* linkedList);
+
 #endif //DISEASEMONITOR_LIST_LIB_H
