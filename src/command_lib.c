@@ -59,7 +59,6 @@ void diseaseFrequency(CmdManager* manager, char* virusName, Date* date1, Date* d
 void topk_Diseases(CmdManager* manager, int k, char* country, Date* date1, Date* date2){
     HashElement iterator = hashITERATOR(manager->countryHashTable);
     iterator.country = country;
-    iterator.k = k;
     Heap* maxHeap = createHeap();
     if(date1 != NULL && date2 != NULL) {
         iterator.date1 = date1;
@@ -68,18 +67,27 @@ void topk_Diseases(CmdManager* manager, int k, char* country, Date* date1, Date*
     }else {
         while (hashIterateValues(&iterator, GET_HEAP_NODES_COUNTRY) != NULL);
     }
-    if(iterator.heapNodes->head == NULL){
-        fprintf(stdout, "There are no disease cases for %s\n", country);
+    if(iterator.heapNodes == NULL || iterator.heapNodes->head == NULL){
+        fprintf(stdout, "There are no disease cases for %s\n~$:", country);
+        freeHeapTree(maxHeap);
+    }else{
+        Node* currentNode = iterator.heapNodes->head;
+        while(currentNode != NULL){
+            maxHeap->root = insertHeap(maxHeap, (HeapNode*)currentNode->item);
+            maxHeap->numOfNodes += 1;
+            currentNode = currentNode->next;
+        }
+        if(k > maxHeap->numOfNodes){
+            k = maxHeap->numOfNodes;
+        }
+        while (k > 0){
+            popHeapNode(maxHeap);
+            k--;
+        }
+        fprintf(stdout, "~$:");
+        freeHeapTree(maxHeap);
+        heapListMemoryDeallock(iterator.heapNodes);
     }
-    Node* currentNode = iterator.heapNodes->head;
-    while(currentNode != NULL){
-        maxHeap->root = insertHeap(maxHeap, (HeapNode*)currentNode->item);
-        currentNode = currentNode->next;
-    }
-    printLevelOrder(maxHeap->root, k);
-    fprintf(stdout, "~$:");
-    heapListMemoryDeallock(iterator.heapNodes);
-    free(maxHeap);
 }
 
 /**
@@ -89,7 +97,6 @@ void topk_Diseases(CmdManager* manager, int k, char* country, Date* date1, Date*
 void topk_Countries(CmdManager* manager, int k, char* disease, Date* date1, Date* date2){
     HashElement iterator = hashITERATOR(manager->diseaseHashTable);
     iterator.virus = disease;
-    iterator.k = k;
     Heap* maxHeap = createHeap();
     if(date1 != NULL && date2 != NULL) {
         iterator.date1 = date1;
@@ -98,24 +105,33 @@ void topk_Countries(CmdManager* manager, int k, char* disease, Date* date1, Date
     }else {
         while (hashIterateValues(&iterator, GET_HEAP_NODES_VIRUS) != NULL);
     }
-    if(iterator.heapNodes->head == NULL){
-        fprintf(stdout, "There are no countries with cases of %s\n", disease);
-    }
-    Node* currentNode = iterator.heapNodes->head;
-    while(currentNode != NULL){
-        maxHeap->root = insertHeap(maxHeap, (HeapNode*)currentNode->item);
-        currentNode = currentNode->next;
-    }
-    printLevelOrder(maxHeap->root, k);
-    fprintf(stdout, "~$:");
+    if(iterator.heapNodes == NULL || iterator.heapNodes->head == NULL){
+        fprintf(stdout, "There are no countries with cases of %s\n~$:", disease);
+        freeHeapTree(maxHeap);
+    }else{
+        Node* currentNode = iterator.heapNodes->head;
+        while(currentNode != NULL){
+            maxHeap->root = insertHeap(maxHeap, (HeapNode*)currentNode->item);
+            maxHeap->numOfNodes += 1;
+            currentNode = currentNode->next;
+        }
+        if(k > maxHeap->numOfNodes){
+            k = maxHeap->numOfNodes;
+        }
+        while (k > 0){
+            popHeapNode(maxHeap);
+            k--;
+        }
+        fprintf(stdout, "~$:");
 
-    freeHeapTree(maxHeap);
-    heapListMemoryDeallock(iterator.heapNodes);
+        freeHeapTree(maxHeap);
+        heapListMemoryDeallock(iterator.heapNodes);
+    }
 }
 
 /**
  * Insert a new patient record in the system
- * Cmd Args: recordID patientFirstName patientLastName diseaseID entryDate [exitDate]
+ * Cmd Args: recordID patientFirstName patientLastName diseaseID country entryDate [exitDate]
  * */
 void insertPatientRecord(CmdManager* manager, char* args){
 
@@ -124,7 +140,10 @@ void insertPatientRecord(CmdManager* manager, char* args){
         fprintf(stdout,"New record successfully added.\n~$:");
     else
         fprintf(stderr,"New record failed to be inserted.\n~$:");
-    applyOperationOnHashTable(manager->diseaseHashTable, SEARCH);
+    /**
+     * Uncomment the line below to print the patients list and check the insertion
+     * */
+    //applyOperationOnHashTable(manager->diseaseHashTable, SEARCH);
 }
 
 
@@ -146,6 +165,11 @@ void recordPatientExit(CmdManager* manager, char* args){
     else{
         fprintf(stderr, "Could not update exit date\n~$:");
     }
+
+    /**
+     * Uncomment the line below to print the patients list and check the insertion
+     * */
+    //applyOperationOnHashTable(manager->diseaseHashTable, SEARCH);
 }
 
 
@@ -181,10 +205,21 @@ void numCurrentPatients(CmdManager* manager, char* disease){
         }else
             fprintf(stdout, "The number of hospitalised patients for %s: 0\n~$:", disease);
     }else{
-
-        HashElement iterator = hashITERATOR(manager->diseaseHashTable);
-        while(hashIterateValues(&iterator, COUNT_HOSPITALISED) != NULL);
-        fprintf(stdout, "Total number of patients counted: %d\n~$:", iterator.counter);
+        int totalCounted = 0;
+        for (int h = 0; h < manager->diseaseHashTable->capacity; h++ ){
+            Bucket* bucket = manager->diseaseHashTable->table[h];
+            if(bucket != NULL){
+                while (bucket != NULL){
+                    for(int i = 0; i < bucket->numOfEntries; i++){
+                        int patientsNum = countPatients(bucket->entry[i].tree, COUNT_HOSPITALISED, NULL);
+                        fprintf(stdout, "The number of the currently hospitalised patients for %s is: %d\n~$:", bucket->entry[i].data, patientsNum);
+                        totalCounted += patientsNum;
+                    }
+                    bucket = bucket->next;
+                }
+            }
+        }
+        fprintf(stdout, "Total number of patients counted: %d\n~$:", totalCounted);
     }
 }
 
@@ -194,10 +229,10 @@ void numCurrentPatients(CmdManager* manager, char* disease){
 void exitMonitor(CmdManager* manager){
 
     fprintf(stdout, "Destroying disease HashTable...\n");
-    hashDestroy(manager->diseaseHashTable);
+    freeHashTable(manager->diseaseHashTable);
 
     fprintf(stdout, "Destroying country HashTable...\n");
-    hashDestroy(manager->countryHashTable);
+    freeHashTable(manager->countryHashTable);
 
     fprintf(stdout, "Destroy patient list...\n");
     listMemoryDeallock(manager->patientList);

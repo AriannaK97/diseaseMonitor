@@ -19,6 +19,8 @@ enum defAttribute{
     BUFFER_SIZE,
 };
 
+PatientCase* getPatient(char* buffer);
+
 FILE* openFile(char *inputFile);
 
 InputArguments* getInputArgs(int argc, char** argv);

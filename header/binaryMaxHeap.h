@@ -12,6 +12,7 @@
 #include <stdlib.h>
 typedef struct Heap{
     struct HeapNode* root;
+    int numOfNodes;
 }Heap;
 
 typedef struct HeapNode{
@@ -21,6 +22,8 @@ typedef struct HeapNode{
     struct HeapNode* right;
     struct HeapNode* parent;
 }HeapNode;
+
+
 
 Heap* getSubHeapTree(Heap* primalTree, HeapNode* newRoot);
 
@@ -32,13 +35,15 @@ HeapNode* getRight(HeapNode* A);
 
 HeapNode* getParent(HeapNode* A);
 
-void exchange(HeapNode** A, HeapNode** i);
-
 void maxHeapify(HeapNode* A);
 
 HeapNode* createHeapNode(char* data, int dataSum);
 
+void swapValues(HeapNode* node1, HeapNode* node2);
+
 int maxDepth(HeapNode* root);
+
+int minDepth(HeapNode *root);
 
 HeapNode* insertHeap(Heap* root, HeapNode* newNode);
 
@@ -53,6 +58,10 @@ void freeHeapNode(Heap* root, HeapNode* node);
 void freeHeapTree(Heap* heapTree);
 
 void freeNode(HeapNode* node);
+
+HeapNode* popHeapNode(Heap* heapTree);
+
+HeapNode* getLastLeaf(Heap* heapTree);
 
 #endif //DISEASEMONITOR_BINARYMAXHEAP_H
 //topk_Diseases 5 Italy 1-1-2000 16-1-2006

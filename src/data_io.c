@@ -28,7 +28,8 @@ InputArguments* getInputArgs(int argc, char** argv){
 
     for (int i = 1; i < argc; i += 2) {
         if (strcmp(argv[i], "-p") == 0) {
-            arguments->inputFile = argv[i + 1];
+            arguments->inputFile = malloc(sizeof(char)*254);
+            strcpy(arguments->inputFile, argv[i + 1]);
             numOfArgs += 2;
         } else if (strcmp(argv[i], "-h1") == 0) {
             arguments->diseaseHashtableNumOfEntries = atoi(argv[i + 1]);
@@ -193,9 +194,7 @@ CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int d
     HashTable* countryHashTable = hashCreate(countryHashTableNumOfEntries);
 
     while(getline(&buffer, &maxStrLength, patientRecordsFile) >= 0){
-        //writeEntry(buffer, &patientList, diseaseHashTable, countryHashTable, bucketSize);
 
-        //printf("%s\n", buffer);
         newPatient = getPatient(buffer);
         newNode = nodeInit(newPatient);
 

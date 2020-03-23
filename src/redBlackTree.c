@@ -233,35 +233,7 @@ int rbNodeCounter_BetweenDates(rbNode* root, rbNode* nil, int operationCall, Has
             && strcmp(patient->country, hashIterator->country) == 0){
             counter++;
         }
-    } else if (operationCall == TOP_K_DISEASES_DATE){
-        if(checkDateSpace(patient, hashIterator->date1, hashIterator->date2)){
-            HeapNode* newNode;
-            if(hashIterator->maxHeap == NULL){
-                newNode = createHeapNode(patient->virus, 1);
-                hashIterator->maxHeap = createHeap(newNode);
-            }else if((newNode = ifNodeExists(hashIterator->maxHeap->root, patient->virus))!=NULL){
-                newNode->dataSum += 1;
-            }else{
-                newNode = createHeapNode(patient->virus, 1);
-                insertHeap(hashIterator->maxHeap, newNode);
-            }
-            //maxHeapify(hashIterator->maxHeap);
-        }
-    } else if (operationCall == TOP_K_COUNTRIES_DATE){
-        if(checkDateSpace(patient, hashIterator->date1, hashIterator->date2)){
-            HeapNode* newNode;
-            if(hashIterator->maxHeap == NULL){
-                newNode = createHeapNode(patient->country, 1);
-                hashIterator->maxHeap = createHeap(newNode);
-            }else if((newNode = ifNodeExists(hashIterator->maxHeap->root, patient->country))!=NULL){
-                newNode->dataSum += 1;
-            }else{
-                newNode = createHeapNode(patient->country, 1);
-                hashIterator->maxHeap->root = insertHeap(hashIterator->maxHeap, newNode);
-            }
-            //maxHeapify(hashIterator->maxHeap);
-        }
-    }else if(operationCall == GET_HEAP_NODES_VIRUS_DATES){
+    } else if(operationCall == GET_HEAP_NODES_VIRUS_DATES){
         if(checkDateSpace(patient, hashIterator->date1, hashIterator->date2)){
             if(hashIterator->heapNodes == NULL){
                 HeapNode* newNode = createHeapNode(patient->country, 1);
@@ -305,7 +277,7 @@ int rbNodeCounter(rbNode* root, rbNode* nil, int operationCall, HashElement* has
     if (operationCall == COUNT_HOSPITALISED) {
         if (patient->exitDate->year == 0 && patient->exitDate->day == 0 && patient->exitDate->month == 0)
             counter++;
-    } else if (operationCall == COUNT_ALL) {
+    }else if (operationCall == COUNT_ALL) {
         counter++;
     }else if(operationCall == GET_HEAP_NODES_VIRUS){
         if(hashIterator->heapNodes == NULL){
