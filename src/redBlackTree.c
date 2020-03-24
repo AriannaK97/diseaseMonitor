@@ -106,6 +106,8 @@ rbNode* createRbTreeNode(void* listNode){
     treeNode->listNodeEntry = listNode;
     treeNode->colour =  Red;
     treeNode->parent = NULL;
+    treeNode->right = NULL;
+    treeNode->left =NULL;
 
     return treeNode;
 }

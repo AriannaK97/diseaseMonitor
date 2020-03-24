@@ -187,8 +187,8 @@ CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int d
     char* buffer = malloc(sizeof(char)*maxStrLength);
     CmdManager* cmdManager = malloc(sizeof(struct CmdManager));
     List* patientList = NULL;
-    PatientCase* newPatient;
-    Node* newNode;
+    PatientCase* newPatient = NULL;
+    Node* newNode = NULL;
 
     HashTable* diseaseHashTable = hashCreate(diseaseHashtableNumOfEntries);
     HashTable* countryHashTable = hashCreate(countryHashTableNumOfEntries);
@@ -206,6 +206,7 @@ CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int d
         hashPut(diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize, newNode);
         hashPut(countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize, newNode);
     }
+
 
     /**
      * Put the needed structures to command manager

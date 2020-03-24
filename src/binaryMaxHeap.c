@@ -176,6 +176,7 @@ HeapNode* popHeapNode(Heap* heapTree){
         return NULL;
     }
     if(heapTree->numOfNodes == 1){
+        fprintf(stdout, "%s: %d\n", heapTree->root->data, heapTree->root->dataSum);
         heapTree->numOfNodes--;
         return heapTree->root;
     }

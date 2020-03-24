@@ -172,3 +172,11 @@ void printListNode(Node* node){
                    patient->country, patient->entryDate->day, patient->entryDate->month, patient->entryDate->year,
                    patient->exitDate->day, patient->exitDate->month, patient->exitDate->year);
 }
+
+void printListNodeHeap(Node* node){
+    if(node == NULL){
+        return;
+    }
+    HeapNode* heapnode = node->item;
+    fprintf(stdout,"%s: %d\n", heapnode->data, heapnode->dataSum);
+}

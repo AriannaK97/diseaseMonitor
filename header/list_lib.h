@@ -38,4 +38,6 @@ bool updateListVirusSum(List* linkedList, char* key);
 
 void heapListMemoryDeallock(List* linkedList);
 
+void printListNodeHeap(Node* node);
+
 #endif //DISEASEMONITOR_LIST_LIB_H

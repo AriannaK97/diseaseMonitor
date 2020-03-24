@@ -80,7 +80,7 @@ void topk_Diseases(CmdManager* manager, int k, char* country, Date* date1, Date*
         if(k > maxHeap->numOfNodes){
             k = maxHeap->numOfNodes;
         }
-        while (k > 0){
+        while (k >= 0){
             popHeapNode(maxHeap);
             k--;
         }
@@ -245,6 +245,7 @@ void exitMonitor(CmdManager* manager){
 
 void commandServer(CmdManager* manager){
     char* command = NULL;
+    char* simpleCommand = NULL;
     char* line = NULL;
 
     size_t length = 0;
@@ -252,137 +253,141 @@ void commandServer(CmdManager* manager){
     fprintf(stdout,"~$:");
     while (getline(&line, &length, stdin) != EOF){
 
-        command = strtok(line, "\n");
-        if(command == NULL){
+        simpleCommand = strtok(line, "\n");
+        if(simpleCommand == NULL){
             continue;
-        }else if(strcmp(command, "/help") == 0){
+        }else if(strcmp(simpleCommand, "/help") == 0){
             helpDesc();
-        } else if(strcmp(command, "/exit") == 0){
+        } else if(strcmp(simpleCommand, "/exit") == 0){
+            free(line);
             exitMonitor(manager);
+        }else {
+
+            command = strtok(simpleCommand, " ");
+
+            if (strcmp(command, "/globalDiseaseStats") == 0) {
+
+                char *arg1 = strtok(NULL, " ");
+                char *arg2 = strtok(NULL, " ");
+
+                if (arg1 != NULL && arg2 != NULL) {
+
+                    Date *date1 = malloc(sizeof(struct Date));
+                    Date *date2 = malloc(sizeof(struct Date));
+
+                    date1->day = atoi(strtok(arg1, "-"));
+                    date1->month = atoi(strtok(NULL, "-"));
+                    date1->year = atoi(strtok(NULL, "-"));
+                    date2->day = atoi(strtok(arg2, "-"));
+                    date2->month = atoi(strtok(NULL, "-"));
+                    date2->year = atoi(strtok(NULL, "-"));
+                    globalDiseaseStats(manager, date1, date2);
+
+                    free(date1);
+                    free(date2);
+
+                } else if (arg1 == NULL && arg2 == NULL) {
+                    globalDiseaseStats(manager, 0 - 0 - 0, 0 - 0 - 0);
+                } else if (arg2 == NULL && arg1 != NULL) {
+                    fprintf(stderr, "Missing date2. Please try again...\n~$:");
+                }
+
+
+            } else if (strcmp(command, "/diseaseFrequency") == 0) {
+                Date *date1;
+                Date *date2;
+                date1 = malloc(sizeof(struct Date));
+                date2 = malloc(sizeof(struct Date));
+
+                char *virusName = strtok(NULL, " ");   //virus
+                char *arg2 = strtok(NULL, " ");   //date1
+                char *arg3 = strtok(NULL, " ");   //date2
+                char *country = strtok(NULL, " ");
+
+                date1->day = atoi(strtok(arg2, "-"));
+                date1->month = atoi(strtok(NULL, "-"));
+                date1->year = atoi(strtok(NULL, "-"));
+                date2->day = atoi(strtok(arg3, "-"));
+                date2->month = atoi(strtok(NULL, "-"));
+                date2->year = atoi(strtok(NULL, "-"));
+
+                if (country != NULL) {
+                    diseaseFrequency(manager, virusName, date1, date2, country);
+                } else
+                    diseaseFrequency(manager, virusName, date1, date2, NULL);
+
+                free(date1);
+                free(date2);
+
+            } else if (strcmp(command, "/topk_Diseases") == 0) {
+
+                int k = atoi(strtok(NULL, " "));
+                char *country = strtok(NULL, " ");
+                char *arg3 = strtok(NULL, " ");
+                char *arg4 = strtok(NULL, " ");
+
+                if (arg3 != NULL && arg4 != NULL) {
+                    Date *date1 = malloc(sizeof(struct Date));
+                    Date *date2 = malloc(sizeof(struct Date));
+                    date1->day = atoi(strtok(arg3, "-"));
+                    date1->month = atoi(strtok(NULL, "-"));
+                    date1->year = atoi(strtok(NULL, "-"));
+                    date2->day = atoi(strtok(arg4, "-"));
+                    date2->month = atoi(strtok(NULL, "-"));
+                    date2->year = atoi(strtok(NULL, "-"));
+                    topk_Diseases(manager, k, country, date1, date2);
+                    free(date1);
+                    free(date2);
+
+                } else if (arg3 == NULL && arg4 == NULL) {
+                    topk_Diseases(manager, k, country, NULL, NULL);
+                } else if (arg3 != NULL && arg4 == NULL) {
+                    fprintf(stderr, "Missing date2. Please try again...\n~$:");
+                }
+
+            } else if (strcmp(command, "/topk_Countries") == 0) {
+
+                int k = atoi(strtok(NULL, " "));
+                char *disease = strtok(NULL, " ");
+                char *arg3 = strtok(NULL, " ");
+                char *arg4 = strtok(NULL, " ");
+
+                if (arg3 != NULL && arg4 != NULL) {
+                    Date *date1 = malloc(sizeof(struct Date));
+                    Date *date2 = malloc(sizeof(struct Date));
+                    date1->day = atoi(strtok(arg3, "-"));
+                    date1->month = atoi(strtok(NULL, "-"));
+                    date1->year = atoi(strtok(NULL, "-"));
+                    date2->day = atoi(strtok(arg4, "-"));
+                    date2->month = atoi(strtok(NULL, "-"));
+                    date2->year = atoi(strtok(NULL, "-"));
+                    topk_Countries(manager, k, disease, date1, date2);
+
+                    free(date1);
+                    free(date2);
+
+                } else if (arg3 == NULL && arg4 == NULL) {
+                    topk_Countries(manager, k, disease, NULL, NULL);
+                } else if (arg3 != NULL && arg4 == NULL) {
+                    fprintf(stderr, "Missing date2. Please try again...\n~$:");
+                }
+            } else if (strcmp(command, "/recordPatientExit") == 0) {
+                char *arguments = strtok(NULL, "\n");
+                recordPatientExit(manager, arguments);
+            } else if (strcmp(command, "/numCurrentPatients") ==
+                       0) {  //the query is called with the disease argument defined
+                char *disease = strtok(NULL, "\n");
+                numCurrentPatients(manager, disease);
+            } else if (strcmp(command, "/insertPatientRecord") == 0) {
+                char *arguments = strtok(NULL, "\n");
+                insertPatientRecord(manager, arguments);
+            } else {
+                fprintf(stdout,
+                        "The command you have entered does not exist.\n You can see the available commands by hitting /help.\n~$:");
+            }
         }
-
-        command = strtok(line, " ");
-
-        if(strcmp(command, "/globalDiseaseStats") == 0) {
-
-            char* arg1 = strtok(NULL, " ");
-            char* arg2 = strtok(NULL, " ");
-
-            if (arg1 != NULL && arg2 != NULL){
-
-                Date* date1 = malloc(sizeof(struct Date));
-                Date* date2 = malloc(sizeof(struct Date));
-
-                date1->day = atoi(strtok(arg1, "-"));
-                date1->month = atoi(strtok(NULL, "-"));
-                date1->year = atoi(strtok(NULL, "-"));
-                date2->day = atoi(strtok(arg2, "-"));
-                date2->month = atoi(strtok(NULL, "-"));
-                date2->year = atoi(strtok(NULL, "-"));
-                globalDiseaseStats(manager, date1, date2);
-
-                free(date1);
-                free(date2);
-
-            }else if (arg1 == NULL && arg2 == NULL){
-                globalDiseaseStats(manager, 0-0-0, 0-0-0);
-            }else if(arg2 == NULL && arg1 != NULL){
-                fprintf(stderr, "Missing date2. Please try again...\n~$:");
-            }
-
-
-        } else if(strcmp(command, "/diseaseFrequency") == 0){
-            Date* date1;
-            Date* date2;
-            date1 = malloc(sizeof(struct Date));
-            date2 = malloc(sizeof(struct Date));
-
-            char* virusName = strtok(NULL, " ");   //virus
-            char* arg2 = strtok(NULL, " ");   //date1
-            char* arg3 = strtok(NULL, " ");   //date2
-            char* country = strtok(NULL, " ");
-
-            date1->day = atoi(strtok(arg2, "-"));
-            date1->month = atoi(strtok(NULL, "-"));
-            date1->year = atoi(strtok(NULL, "-"));
-            date2->day = atoi(strtok(arg3, "-"));
-            date2->month = atoi(strtok(NULL, "-"));
-            date2->year = atoi(strtok(NULL, "-"));
-
-            if(country != NULL){
-                diseaseFrequency(manager, virusName, date1, date2, country);
-            }else
-                diseaseFrequency(manager, virusName, date1, date2, NULL);
-
-            free(date1);
-            free(date2);
-
-        } else if(strcmp(command, "/topk_Diseases") == 0){
-
-            int k = atoi(strtok(NULL, " "));
-            char* country = strtok(NULL, " ");
-            char* arg3 = strtok(NULL, " ");
-            char* arg4 = strtok(NULL, " ");
-
-            if (arg3 != NULL && arg4 != NULL){
-                Date* date1 = malloc(sizeof(struct Date));
-                Date* date2 = malloc(sizeof(struct Date));
-                date1->day = atoi(strtok(arg3, "-"));
-                date1->month = atoi(strtok(NULL, "-"));
-                date1->year = atoi(strtok(NULL, "-"));
-                date2->day = atoi(strtok(arg4, "-"));
-                date2->month = atoi(strtok(NULL, "-"));
-                date2->year = atoi(strtok(NULL, "-"));
-                topk_Diseases(manager, k, country, date1, date2);
-                free(date1);
-                free(date2);
-
-            }else if (arg3 == NULL && arg4 == NULL){
-                topk_Diseases(manager, k, country, NULL, NULL);
-            }else if(arg3 != NULL && arg4 == NULL ){
-                fprintf(stderr, "Missing date2. Please try again...\n~$:");
-            }
-
-        } else if(strcmp(command, "/topk_Countries") == 0){
-
-            int k = atoi(strtok(NULL, " "));
-            char* disease = strtok(NULL, " ");
-            char* arg3 = strtok(NULL, " ");
-            char* arg4 = strtok(NULL, " ");
-
-            if (arg3 != NULL && arg4 != NULL){
-                Date* date1 = malloc(sizeof(struct Date));
-                Date* date2 = malloc(sizeof(struct Date));
-                date1->day = atoi(strtok(arg3, "-"));
-                date1->month = atoi(strtok(NULL, "-"));
-                date1->year = atoi(strtok(NULL, "-"));
-                date2->day = atoi(strtok(arg4, "-"));
-                date2->month = atoi(strtok(NULL, "-"));
-                date2->year = atoi(strtok(NULL, "-"));
-                topk_Countries(manager, k, disease, date1, date2);
-
-                free(date1);
-                free(date2);
-
-            }else if (arg3 == NULL && arg4 == NULL){
-                topk_Countries(manager, k, disease, NULL, NULL);
-            }else if(arg3 != NULL && arg4 == NULL ){
-                fprintf(stderr, "Missing date2. Please try again...\n~$:");
-            }
-        } else if(strcmp(command, "/recordPatientExit") == 0){
-            char* arguments = strtok(NULL, "\n");
-            recordPatientExit(manager, arguments);
-        } else if(strcmp(command, "/numCurrentPatients") == 0){  //the query is called with the disease argument defined
-            char* disease = strtok(NULL, "\n");
-            numCurrentPatients(manager, disease);
-        } else if(strcmp(command, "/insertPatientRecord") == 0){
-            char* arguments = strtok(NULL, "\n");
-            insertPatientRecord(manager, arguments);
-        } else{
-            fprintf(stdout, "The command you have entered does not exist.\n You can see the available commands by hitting /help.\n~$:");
-        }
-
     }
+    free(line);
 }
 
 

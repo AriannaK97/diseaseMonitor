@@ -72,7 +72,8 @@ bool bucketHasSpace(Bucket *bucket){
  * */
 Bucket* getBucket(size_t bucketSize, Bucket *prevBucket){
     Bucket *e;
-    if((e = malloc(sizeof(Bucket))) == NULL){
+    e = malloc(sizeof(Bucket));
+    if(e == NULL){
         return NULL;
     }
 
@@ -80,6 +81,7 @@ Bucket* getBucket(size_t bucketSize, Bucket *prevBucket){
     unsigned int entries = freeSpace/DATA_SPACE;
     e->entry = malloc(entries * sizeof(BucketEntry));
     e->bucketSize = prevBucket->bucketSize;
+    e->numOfEntries = 0;
     prevBucket->next = e;
     e->next = NULL;
 
@@ -109,6 +111,7 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
     bucket = malloc(sizeof(Bucket));
     bucket->next = NULL;
     bucket->bucketSize = bucketSize;
+    bucket->numOfEntries = 0;
     unsigned int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
     unsigned int entries = freeSpace/DATA_SPACE;
 
@@ -124,7 +127,7 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
     //create the rbtree for the new entry
     rbNode* treeNode = createRbTreeNode(listNode);
     rbInsert((rbTree*)bucket->entry[0].tree, treeNode);
-    bucket->numOfEntries++;
+    bucket->numOfEntries+=1;
 
     // Add the element at the beginning of the linked list
     bucket->next = hTable->table[h];
@@ -162,18 +165,18 @@ void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* h
                 rbNode* treeNode = createRbTreeNode(listNode);
                 rbInsert((rbTree*)bucket->entry[bucket->numOfEntries].tree, treeNode);
 
-                bucket->numOfEntries++;
+                bucket->numOfEntries+=1;
                 hTable->e_num ++;
 
                 return;
             }else{
 
-                unsigned int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
+                unsigned int freeSpace = bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
                 unsigned int entries = freeSpace/DATA_SPACE;
 
                 bucket = getBucket(bucketSize, bucket);
 
-                //bucket->entry = malloc(entries * sizeof(BucketEntry));
+                bucket->numOfEntries+=1;
                 for(unsigned int i = 0; i < entries; i++){
                     bucket->entry[i].data = malloc(DATA_SPACE* sizeof(char));
                     bucket->entry[i].tree = createRbTree();
@@ -229,6 +232,7 @@ int iterateBucketData(Bucket* bucket, int operationCall, HashElement* hashIterat
 
                 counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, hashIterator);
                 fprintf(stdout,"The number of patients monitored for %s: %d\n",iterator[i].data, counter);
+                hashIterator->counter += counter;
 
             }else if(operationCall == COUNT_ALL_BETWEEN_DATES_WITH_VIRUS
                      || operationCall == COUNT_ALL_BETWEEN_DATES_WITH_VIRUS_AND_COUNTRY){
@@ -236,6 +240,8 @@ int iterateBucketData(Bucket* bucket, int operationCall, HashElement* hashIterat
                 if(strcmp(iterator[i].data, hashIterator->virus)==0){
                     counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, hashIterator);
                     fprintf(stdout,"The number of patients monitored for %s: %d\n",iterator[i].data, counter);
+                    hashIterator->counter += counter;
+                    counter = 0;
                 }
 
             }else if(operationCall == GET_HEAP_NODES_COUNTRY_DATES){
@@ -254,6 +260,8 @@ int iterateBucketData(Bucket* bucket, int operationCall, HashElement* hashIterat
 
                 counter += countPatients((rbTree *) iterator[i].tree, operationCall,NULL);
                 fprintf(stdout, "The number of patients monitored for %s: %d\n", iterator[i].data, counter);
+                hashIterator->counter += counter;
+                counter = 0;
 
             }else if(operationCall == PRINT) {
 
@@ -271,7 +279,6 @@ int iterateBucketData(Bucket* bucket, int operationCall, HashElement* hashIterat
                     counter += countPatients((rbTree*)iterator[i].tree, operationCall, hashIterator);
                 }
             }
-
         }
     }
     return counter;
