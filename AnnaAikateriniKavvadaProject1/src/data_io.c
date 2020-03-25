@@ -25,10 +25,14 @@ InputArguments* getInputArgs(int argc, char** argv){
 
     InputArguments* arguments =  malloc(sizeof(struct InputArguments));
     int numOfArgs = 0;
-
+    if(argc != 9){
+        fprintf(stderr, "Invalid number of arguments\nExit...\n");
+        exit(1);
+    }
     for (int i = 1; i < argc; i += 2) {
         if (strcmp(argv[i], "-p") == 0) {
-            arguments->inputFile = argv[i + 1];
+            arguments->inputFile = malloc(sizeof(char)*254);
+            strcpy(arguments->inputFile, argv[i + 1]);
             numOfArgs += 2;
         } else if (strcmp(argv[i], "-h1") == 0) {
             arguments->diseaseHashtableNumOfEntries = atoi(argv[i + 1]);
@@ -103,11 +107,18 @@ PatientCase* getPatient(char* buffer){
     PatientCase *newPatient = (struct PatientCase*)malloc(sizeof(struct PatientCase));
     newPatient->entryDate = (struct Date*)malloc(sizeof(struct Date));
     newPatient->exitDate = (struct Date*)malloc(sizeof(struct Date));
+    newPatient->entryDate->day = 0;
+    newPatient->entryDate->month = 0;
+    newPatient->entryDate->year = 0;
+    newPatient->exitDate->day = 0;
+    newPatient->exitDate->month = 0;
+    newPatient->exitDate->year = 0;
 
     token = strtok(buffer, delim);
     while(tokenCase != 12 && token != NULL){
         if (tokenCase == 0){
-            newPatient->caseNum = atoi(token);
+            newPatient->caseNum = malloc(DATA_SPACE*sizeof(char));
+            strcpy(newPatient->caseNum, token);
             token = strtok(NULL, delim);
         } else if (tokenCase == 1){
             newPatient->name = malloc(DATA_SPACE*sizeof(char));
@@ -166,7 +177,7 @@ PatientCase* getPatient(char* buffer){
 bool writeEntry(char* buffer, List* patientList, HashTable* diseaseHashTable, HashTable* countryHashTable, int bucketSize){
     PatientCase* newPatient;
     Node* newNode;
-    //printf("%s\n", buffer);
+
     newPatient = getPatient(buffer);
     newNode = nodeInit(newPatient);
 
@@ -185,16 +196,14 @@ CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int d
     char* buffer = malloc(sizeof(char)*maxStrLength);
     CmdManager* cmdManager = malloc(sizeof(struct CmdManager));
     List* patientList = NULL;
-    PatientCase* newPatient;
-    Node* newNode;
+    PatientCase* newPatient = NULL;
+    Node* newNode = NULL;
 
     HashTable* diseaseHashTable = hashCreate(diseaseHashtableNumOfEntries);
     HashTable* countryHashTable = hashCreate(countryHashTableNumOfEntries);
 
     while(getline(&buffer, &maxStrLength, patientRecordsFile) >= 0){
-        //writeEntry(buffer, &patientList, diseaseHashTable, countryHashTable, bucketSize);
 
-        //printf("%s\n", buffer);
         newPatient = getPatient(buffer);
         newNode = nodeInit(newPatient);
 
@@ -206,6 +215,7 @@ CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int d
         hashPut(diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize, newNode);
         hashPut(countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize, newNode);
     }
+
 
     /**
      * Put the needed structures to command manager

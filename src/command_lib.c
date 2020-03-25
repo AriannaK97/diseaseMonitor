@@ -32,7 +32,7 @@ void globalDiseaseStats(CmdManager* manager, Date* date1, Date* date2){
  * defined the number of the diseased monitored in the system during the specified
  * period between [date1, date2]. If [country] is defined, the application prints
  * the number of the diseased in this [country] for the specified period.
- * Cmd Args: virusName [country] date1 date2
+ * Cmd Args: virusName date1 date2 [country]
  * */
 void diseaseFrequency(CmdManager* manager, char* virusName, Date* date1, Date* date2, char* country){
 
@@ -80,7 +80,7 @@ void topk_Diseases(CmdManager* manager, int k, char* country, Date* date1, Date*
         if(k > maxHeap->numOfNodes){
             k = maxHeap->numOfNodes;
         }
-        while (k >= 0){
+        while (k > 0){
             popHeapNode(maxHeap);
             k--;
         }
@@ -387,7 +387,6 @@ void commandServer(CmdManager* manager){
             }
         }
     }
-    free(line);
 }
 
 
@@ -396,7 +395,7 @@ void commandServer(CmdManager* manager){
  * */
 void helpDesc(){
     fprintf(stdout,"/globalDiseaseStats [date1 date2]\n\n"
-                   "/diseaseFrequency virusName [country] date1 date2\n\n"
+                   "/diseaseFrequency virusName date1 date2 [country]\n\n"
                    "/topk-Diseases k country [date1 date2]\n\n"
                    "/topk-Countries k disease [date1 date2]\n\n"
                    "/insertPatientRecord recordID patientFirstName patientLastName diseaseID country entryDate [exitDate]\n\n"

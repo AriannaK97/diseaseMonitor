@@ -26,12 +26,18 @@ void printList(List* patientList);
 
 void printListNode(Node* node);
 
-bool searchListForRecordID(List* linkedList, int key);
+bool searchListForRecordID(List* linkedList, char* key);
 
-bool searchNodeForRecordID_ExitDateUpdate(List* linkedList, int key, Date* exitDate);
+bool searchNodeForRecordID_ExitDateUpdate(List* linkedList, char* key, Date* exitDate);
 
-bool compareListItemPatient(PatientCase* patient, int key);
+bool compareListItemPatient(PatientCase* patient, char* key);
 
 void nodeItemDeallock(PatientCase* item);
+
+bool updateListVirusSum(List* linkedList, char* key);
+
+void heapListMemoryDeallock(List* linkedList);
+
+void printListNodeHeap(Node* node);
 
 #endif //DISEASEMONITOR_LIST_LIB_H

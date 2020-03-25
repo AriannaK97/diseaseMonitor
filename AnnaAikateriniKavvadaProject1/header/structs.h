@@ -17,7 +17,7 @@ typedef struct Date{
 }Date;
 
 typedef struct PatientCase{
-    int caseNum;
+    char* caseNum;
     char* name;
     char* surname;
     char* virus;

@@ -13,23 +13,23 @@
 #include "binaryMaxHeap.h"
 
 #define DATA_SPACE 32
-#define REMOVE 1
-#define SEARCH 2
-#define PRINT 3
-#define COUNT_ALL 4
-#define COUNT_HOSPITALISED 5
-#define COUNT_ALL_BETWEEN_DATES 6
-#define COUNT_ALL_BETWEEN_DATES_WITH_VIRUS 7
-#define COUNT_ALL_BETWEEN_DATES_WITH_VIRUS_AND_COUNTRY 8
-#define TOP_K_DISEASES 9
-#define TOP_K_DISEASES_DATE 10
-#define TOP_K_COUNTRIES 11
-#define TOP_K_COUNTRIES_DATE 12
+
+#define SEARCH 1
+#define PRINT 2
+#define COUNT_ALL 3
+#define COUNT_HOSPITALISED 4
+#define COUNT_ALL_BETWEEN_DATES 5
+#define COUNT_ALL_BETWEEN_DATES_WITH_VIRUS 6
+#define COUNT_ALL_BETWEEN_DATES_WITH_VIRUS_AND_COUNTRY 7
+#define GET_HEAP_NODES_VIRUS 8
+#define GET_HEAP_NODES_COUNTRY 9
+#define GET_HEAP_NODES_VIRUS_DATES 10
+#define GET_HEAP_NODES_COUNTRY_DATES 11
 
 typedef struct BucketEntry{
     char* data;
     struct rbTree* tree;
-    unsigned long key;
+    unsigned int key;
 }BucketEntry;
 
 //Hashtable element structure
@@ -57,16 +57,12 @@ typedef struct HashElement{
     Date* date2;
     char* country; //for operations requiring country
     char* virus;   //for operations requiring the virus for the search
-    int k;         //for the top k queries
-    HeapNode* maxHeap; //for the top k queries
+    List* heapNodes;    //nodes collected for the heap
 }HashElement;
 
 
 // Inititalize hashtable iterator on hashtable 'ht'
-#define hashITERATOR(ht) {ht, 0, ht->table[0], 0, 0, 0, 0, 0, 0, 0}
-
-char err_ptr;
-//void* hashERROR = &err_ptr; // Data pointing to hashERROR are returned in case of error
+#define hashITERATOR(ht) {ht, 0, ht->table[0], 0, 0, 0, 0, 0}
 
 unsigned long hash(unsigned long x);
 
@@ -76,17 +72,9 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
 
 void* hashGet(HashTable*, unsigned long);
 
-void hashListValues(HashTable*, void**, size_t);
-
 Bucket* hashIterate(HashElement*, int operationCall);
 
-unsigned long hashIterateKeys(HashElement* iterator, int operationCall);
-
 void* hashIterateValues(HashElement* iterator, int operationCall);
-
-void hashClear(HashTable*, int);
-
-void hashDestroy(HashTable*);
 
 bool bucketHasSpace(Bucket *bucket);
 
@@ -96,6 +84,7 @@ void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* h
 
 int iterateBucketData(Bucket* bucket, int operationCall, HashElement* hashIterator);
 
-int iterateBucketData_BetweenDates(Bucket* bucket, int operationCall, HashElement* hashIterator);
+void freeHashTable(HashTable* hTable);
 
+Bucket* getBucket(size_t bucketSize, Bucket *prevBucket);
 #endif //DISEASEMONITOR_HASHTABLE_H

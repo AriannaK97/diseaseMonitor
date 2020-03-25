@@ -92,7 +92,9 @@ bool searchNodeForRecordID_ExitDateUpdate(List* linkedList, char* key, Date* exi
         if (compareListItemPatient(node->item, key)){
             PatientCase* exitPatient = (PatientCase*)node->item;
             if(dateInputValidation(exitPatient->entryDate, exitDate)){
-                exitPatient->exitDate = exitDate;
+                exitPatient->exitDate->day = exitDate->day;
+                exitPatient->exitDate->month = exitDate->month;
+                exitPatient->exitDate->year = exitDate->year;
                 return true;
             }else{
                 fprintf(stdout,"Exit date could not be updated for patient:\n case number: %s | name: %s | "

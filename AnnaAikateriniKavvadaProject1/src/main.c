@@ -19,10 +19,21 @@ int main(int argc, char** argv) {
     cmdManager = read_input_file(patientRecordsFile, getMaxFromFile(patientRecordsFile, LINE_LENGTH),
             arguments->diseaseHashtableNumOfEntries,arguments->countryHashTableNumOfEntries, arguments->bucketSize);
 
+    free(arguments->inputFile);
     free(arguments);
+    fclose(patientRecordsFile);
+
+    /**
+     * Uncomment the line below to see all the inserted patients in the list
+     * */
+
     //printList(cmdManager->patientList);
-    applyOperationOnHashTable(cmdManager->diseaseHashTable, PRINT);
-    applyOperationOnHashTable(cmdManager->countryHashTable, PRINT);
+
+    /**
+     * Uncomment the two lines below to see the hashtable contents
+     * */
+    //applyOperationOnHashTable(cmdManager->diseaseHashTable, PRINT);
+    //applyOperationOnHashTable(cmdManager->countryHashTable, PRINT);
 
     commandServer(cmdManager);
 

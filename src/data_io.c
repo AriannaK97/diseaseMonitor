@@ -25,7 +25,10 @@ InputArguments* getInputArgs(int argc, char** argv){
 
     InputArguments* arguments =  malloc(sizeof(struct InputArguments));
     int numOfArgs = 0;
-
+    if(argc != 9){
+        fprintf(stderr, "Invalid number of arguments\nExit...\n");
+        exit(1);
+    }
     for (int i = 1; i < argc; i += 2) {
         if (strcmp(argv[i], "-p") == 0) {
             arguments->inputFile = malloc(sizeof(char)*254);
@@ -104,6 +107,12 @@ PatientCase* getPatient(char* buffer){
     PatientCase *newPatient = (struct PatientCase*)malloc(sizeof(struct PatientCase));
     newPatient->entryDate = (struct Date*)malloc(sizeof(struct Date));
     newPatient->exitDate = (struct Date*)malloc(sizeof(struct Date));
+    newPatient->entryDate->day = 0;
+    newPatient->entryDate->month = 0;
+    newPatient->entryDate->year = 0;
+    newPatient->exitDate->day = 0;
+    newPatient->exitDate->month = 0;
+    newPatient->exitDate->year = 0;
 
     token = strtok(buffer, delim);
     while(tokenCase != 12 && token != NULL){

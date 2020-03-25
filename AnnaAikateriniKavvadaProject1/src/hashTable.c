@@ -34,10 +34,32 @@ HashTable* hashCreate(unsigned int capacity){
     return hTable;
 }
 
+void freeHashTable(HashTable* hTable){
+    Bucket* bucket = NULL;
+    Bucket* prevBucket = NULL;
+    for (unsigned int i = 0; i < hTable->capacity; i++){
+        bucket = hTable->table[i];
+        while(bucket != NULL){
+            unsigned int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
+            unsigned int entries = freeSpace/DATA_SPACE;
+            for(unsigned int j=0; j < entries; j++){
+                free(bucket->entry[j].data);
+                freeRbTree(bucket->entry[j].tree);
+            }free(bucket->entry);
+            prevBucket = bucket;
+            bucket = bucket->next;
+            free(prevBucket);
+        }
+    }
+    free(hTable->table);
+    free(hTable);
+}
+
+
 bool bucketHasSpace(Bucket *bucket){
     //the new data can fit in the existing bucket
-    int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
-    int entries = freeSpace/DATA_SPACE;
+    unsigned int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
+    unsigned int entries = freeSpace/DATA_SPACE;
     if(bucket->numOfEntries < entries){
         return true;
     }else{
@@ -50,10 +72,16 @@ bool bucketHasSpace(Bucket *bucket){
  * */
 Bucket* getBucket(size_t bucketSize, Bucket *prevBucket){
     Bucket *e;
-    if((e = malloc(sizeof(Bucket))) == NULL){
+    e = malloc(sizeof(Bucket));
+    if(e == NULL){
         return NULL;
     }
+
+    unsigned int freeSpace = bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
+    unsigned int entries = freeSpace/DATA_SPACE;
+    e->entry = malloc(entries * sizeof(BucketEntry));
     e->bucketSize = prevBucket->bucketSize;
+    e->numOfEntries = 0;
     prevBucket->next = e;
     e->next = NULL;
 
@@ -71,7 +99,8 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
         return NULL;
     }
     unsigned int h = hash(key) % hTable->capacity;
-    Bucket* bucket = hTable->table[h];
+    Bucket* bucket = NULL;
+    bucket = hTable->table[h];
 
     if(bucket != NULL){
         putInBucketData(bucket, bucketSize, data, hTable, key, listNode);
@@ -79,18 +108,18 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
     }
 
     // Getting here means the key doesn't already exist
-
-    if((bucket = malloc(sizeof(Bucket))) == NULL){
-        //return hashERROR;
-        return NULL;
-    }
+    bucket = malloc(sizeof(Bucket));
+    bucket->next = NULL;
     bucket->bucketSize = bucketSize;
-    unsigned long freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
-    unsigned long entries = freeSpace/DATA_SPACE;
+    bucket->numOfEntries = 0;
+    unsigned int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
+    unsigned int entries = freeSpace/DATA_SPACE;
+
     bucket->entry = malloc(entries * sizeof(BucketEntry));
-    for(int i = 0; i < entries; i++){
+    for(unsigned int i = 0; i < entries; i++){
         bucket->entry[i].data = malloc(DATA_SPACE* sizeof(char));
         bucket->entry[i].tree = (struct rbTree *) createRbTree();
+        bucket->entry[i].key = 0;
     }
 
     memcpy(bucket->entry[0].data, data, DATA_SPACE);
@@ -98,7 +127,7 @@ void* hashPut(HashTable* hTable, unsigned long key, void* data, size_t bucketSiz
     //create the rbtree for the new entry
     rbNode* treeNode = createRbTreeNode(listNode);
     rbInsert((rbTree*)bucket->entry[0].tree, treeNode);
-    bucket->numOfEntries++;
+    bucket->numOfEntries+=1;
 
     // Add the element at the beginning of the linked list
     bucket->next = hTable->table[h];
@@ -121,14 +150,6 @@ void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* h
             if(strcmp(data, bucket->entry[i].data)==0){
                 rbNode* treeNode = createRbTreeNode(listNode);
                 rbInsert((rbTree*)bucket->entry[i].tree, treeNode);
-
-/*                if(strcmp(bucket->entry[i].data, "France")==0){
-                    rbTree* tree =  bucket->entry[i].tree;
-                    printf("I am bucket %d\n", bCounter);
-                    printRbTree(tree->root, 0);
-                    printf("/////////////////////////////////////////////////////////////////////////\n");
-                }*/
-
                 return;
             }
         }
@@ -144,21 +165,22 @@ void putInBucketData(Bucket* bucket, size_t bucketSize, char* data, HashTable* h
                 rbNode* treeNode = createRbTreeNode(listNode);
                 rbInsert((rbTree*)bucket->entry[bucket->numOfEntries].tree, treeNode);
 
-                bucket->numOfEntries++;
+                bucket->numOfEntries+=1;
                 hTable->e_num ++;
 
                 return;
             }else{
 
-                int freeSpace = bucket->bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
-                int entries = freeSpace/DATA_SPACE;
+                unsigned int freeSpace = bucketSize - sizeof(Bucket*) - sizeof(int) - sizeof(size_t);
+                unsigned int entries = freeSpace/DATA_SPACE;
 
                 bucket = getBucket(bucketSize, bucket);
 
-                bucket->entry = malloc(entries * sizeof(BucketEntry));
-                for(int i = 0; i < entries; i++){
+                bucket->numOfEntries+=1;
+                for(unsigned int i = 0; i < entries; i++){
                     bucket->entry[i].data = malloc(DATA_SPACE* sizeof(char));
                     bucket->entry[i].tree = createRbTree();
+                    bucket->entry[i].key = 0;
                 }
 
                 memcpy(bucket->entry[0].data, data, DATA_SPACE);
@@ -195,71 +217,9 @@ void* hashGet(HashTable* hTable, unsigned long key){
 }
 
 /**
- * Remove data from the hashtable. Return the data removed from the table
- * so that we can free memory if needed.
- **/
-void* hashRemove(HashTable* hTable, unsigned long key){
-    unsigned int h = hash(key) % hTable->capacity;
-    Bucket* bucket = hTable->table[h];
-    Bucket* prev = NULL;
-    while(bucket != NULL){
-        for (int i = 0; bucket->numOfEntries; i++){
-            if(bucket->entry[i].key == key){
-                void* ret = bucket->entry->data;
-                if(prev != NULL)
-                    prev->next = bucket->next;
-                else
-                    hTable->table[h] = bucket->next;
-                free(bucket);
-                bucket = NULL;
-                hTable->e_num --;
-                return ret;
-            }
-            prev = bucket;
-        }
-        bucket = bucket->next;
-    }
-    return NULL;
-}
-
-/**
- * List keys. k should have length equals or greater than the number of keys
- */
-/*void hashListKeys(HashTable* hTable, unsigned long* k, size_t len){
-    if(len < hTable->e_num){
-        return;
-    }
-    int ki = 0; //Index to the current string in **k
-    unsigned int i = hTable->capacity;
-    while(--i >= 0)
-    {
-        Bucket* e = hTable->table[i];
-        while(e)
-        {
-            k[ki++] = e->key;
-            e = e->next;
-        }
-    }
-}*/
-
-/**	List values. v should have length equals or greaterff
-  *than the number of stored elements
-  */
-void hashListValues(HashTable* hTable, void** v, size_t len){
-    if(len < hTable->e_num)
-        return;
-    int vi = 0; //Index to the current string in **v
-    unsigned int i = hTable->capacity;
-    while(--i >= 0){
-        Bucket* e = hTable->table[i];
-        while(e){
-            v[vi++] = e->entry->data;
-            e = e->next;
-        }
-    }
-}
-
-int iterateBucketData_BetweenDates(Bucket* bucket, int operationCall, HashElement* hashIterator){
+ * Iterate over buckets Depending on the operationCall Value
+ * */
+int iterateBucketData(Bucket* bucket, int operationCall, HashElement* hashIterator){
     BucketEntry *iterator = bucket->entry;
     int counter = 0;
 
@@ -267,74 +227,63 @@ int iterateBucketData_BetweenDates(Bucket* bucket, int operationCall, HashElemen
         if(iterator[i].tree != NULL){
             if(operationCall == SEARCH){
                 searchRbNode((rbTree*)iterator[i].tree, hashIterator->date1);
+
             }else if (operationCall == COUNT_ALL_BETWEEN_DATES){
+
                 counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, hashIterator);
                 fprintf(stdout,"The number of patients monitored for %s: %d\n",iterator[i].data, counter);
-            }else if(operationCall == COUNT_ALL_BETWEEN_DATES_WITH_VIRUS || operationCall == COUNT_ALL_BETWEEN_DATES_WITH_VIRUS_AND_COUNTRY){
+                hashIterator->counter += counter;
+                counter = 0;
+
+            }else if(operationCall == COUNT_ALL_BETWEEN_DATES_WITH_VIRUS
+                     || operationCall == COUNT_ALL_BETWEEN_DATES_WITH_VIRUS_AND_COUNTRY){
+
                 if(strcmp(iterator[i].data, hashIterator->virus)==0){
                     counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, hashIterator);
                     fprintf(stdout,"The number of patients monitored for %s: %d\n",iterator[i].data, counter);
+                    hashIterator->counter += counter;
+                    counter = 0;
                 }
-            }else if(operationCall == TOP_K_DISEASES_DATE){
+
+            }else if(operationCall == GET_HEAP_NODES_COUNTRY_DATES){
+
                 if(strcmp(iterator[i].data, hashIterator->country)==0){
                     counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, hashIterator);
-                    fprintf(stdout,"The top %d diseases monitored for %s: \n",hashIterator->k, iterator[i].data);
-                    printLevelOrder(hashIterator->maxHeap, hashIterator->k);
                 }
-            }else if (operationCall == TOP_K_COUNTRIES_DATE){
+
+            }else if (operationCall == GET_HEAP_NODES_VIRUS_DATES){
+
                 if(strcmp(iterator[i].data, hashIterator->virus)==0){
                     counter += countPatients_BetweenDates((rbTree*)iterator[i].tree, operationCall, hashIterator);
-                    fprintf(stdout,"The top %d countries monitored for the disease %s: \n",hashIterator->k, iterator[i].data);
-                    printLevelOrder(hashIterator->maxHeap, hashIterator->k);
                 }
-            }
-        }
-    }
-    return counter;
-}
 
+            }else if(operationCall == COUNT_HOSPITALISED || operationCall == COUNT_ALL){
 
-int iterateBucketData(Bucket* bucket, int operationCall, HashElement* hashIterator){
-    BucketEntry *iterator = bucket->entry;
-
-    Date searchDate;
-    searchDate.day = 18;
-    searchDate.month = 05;
-    searchDate.year = 2012;
-
-    int counter = 0;
-    int diseaseExists = 0;
-    for (int i = 0; i < bucket->numOfEntries; i++) {
-        if (iterator[i].tree != NULL) {
-            if(operationCall == COUNT_HOSPITALISED || operationCall == COUNT_ALL){
                 counter += countPatients((rbTree *) iterator[i].tree, operationCall,NULL);
                 fprintf(stdout, "The number of patients monitored for %s: %d\n", iterator[i].data, counter);
+                hashIterator->counter += counter;
+                counter = 0;
+
             }else if(operationCall == PRINT) {
-                fprintf(stdout, "%s\n", iterator[i].data);
-            }else if(operationCall == TOP_K_DISEASES){
-                if(strcmp(iterator[i].data, hashIterator->country)==0){
-                    counter += countPatients((rbTree*)iterator[i].tree, operationCall, hashIterator);
-                    fprintf(stdout,"The top %d diseases monitored for %s: \n",hashIterator->k, iterator[i].data);
-                    printLevelOrder(hashIterator->maxHeap, hashIterator->k);
-                }
-            }else if(operationCall == TOP_K_COUNTRIES){
+
+                    fprintf(stdout, "%s\n", iterator[i].data);
+
+            }else if(operationCall == GET_HEAP_NODES_VIRUS){    //for topk_Countries
+
                 if(strcmp(iterator[i].data, hashIterator->virus)==0){
                     counter += countPatients((rbTree*)iterator[i].tree, operationCall, hashIterator);
-                    fprintf(stdout,"The top %d countries monitored for %s: \n",hashIterator->k, iterator[i].data);
-                    printLevelOrder(hashIterator->maxHeap, hashIterator->k);
                 }
-            }else if(operationCall == REMOVE){
-                if(bucket != NULL){
-                    if(iterator[i].tree != NULL){
-                        freeRbTree((rbTree*)iterator[i].tree);
-                    }
+
+            }else if(operationCall == GET_HEAP_NODES_COUNTRY){  //for topk_Diseases
+
+                if(strcmp(iterator[i].data, hashIterator->country)==0){
+                    counter += countPatients((rbTree*)iterator[i].tree, operationCall, hashIterator);
                 }
             }
         }
     }
     return counter;
 }
-
 
 /**
  * Iterate through table's elements.
@@ -351,23 +300,10 @@ Bucket* hashIterate(HashElement* iterator, int operationCall){
     }
     Bucket* bucket = iterator->elem;
     if(bucket){
-        if(iterator->date1 == 0 && iterator->date2 == 0){
-            /*iterate bucket for querys without defined date gap and and for delete*/
-            iterator->counter += iterateBucketData(bucket, operationCall, iterator);
-        } else {
-            /*iterate in buckets for queries with defined date gap*/
-            iterator->counter += iterateBucketData_BetweenDates(bucket, operationCall, iterator);
-        }
+        iterateBucketData(bucket, operationCall, iterator);
         iterator->elem = bucket->next;
     }
     return bucket;
-}
-
-
-/* Iterate through keys. */
-unsigned long hashIterateKeys(HashElement* iterator, int operationCall){
-    Bucket* e = hashIterate(iterator, operationCall);
-    return (e == NULL ? 0 : e->entry->key);
 }
 
 /**
@@ -379,28 +315,10 @@ void* hashIterateValues(HashElement* iterator, int operationCall){
 }
 
 /**
- * Removes all elements stored in the hashtable.
- * if free_data, all stored datas are also freed.
- */
-void hashClear(HashTable* hTable, int operationCall){
-    HashElement it = hashITERATOR(hTable);
-    unsigned long k = hashIterateKeys(&it, REMOVE);
-    while(k != 0){
-        operationCall ? free(hashRemove(hTable, k)) : hashRemove(hTable, k);
-        k = hashIterateKeys(&it, REMOVE);
-    }
-}
-
-/**	Destroy the hash table, and free memory.
-  * Data still stored are freed
-  */
-void hashDestroy(HashTable* hTable){
-    hashClear(hTable, REMOVE); // Delete and free all.
-    free(hTable->table);
-    free(hTable);
-}
-
-
+ * Function used for recursive iterations over the hashtable's data
+ * According to the operationCall given it will execute the code part needed
+ * for the incoming query - the function is used for query implementation
+ * */
 void applyOperationOnHashTable(HashTable* hTable, int operationCall){
     HashElement iterator = hashITERATOR(hTable);
     while(hashIterateValues(&iterator, operationCall) != NULL);
