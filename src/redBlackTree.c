@@ -209,7 +209,7 @@ int countPatients(rbTree* tree, int operationCall, HashElement* hashIterator){
 }
 
 bool checkDateSpace(PatientCase* patient, Date* date1, Date* date2){
-    if (compare_dates(patient->entryDate, date1) >=0 && compare_dates(patient->entryDate, date2) <= 0)
+    if (compare_dates(patient->entryDate, date1) >=0 && compare_dates(patient->exitDate, date2) <= 0)
         return true;
     return false;
 }
@@ -339,7 +339,7 @@ void freeRbTree(rbTree* tree){
     freeRbNodesRec(tree, tree->root);
     free(tree->nil);
     free(tree);
-    fprintf(stdout, "Red Black Tree destroyed successfully!\n");
+    //fprintf(stdout, "Red Black Tree destroyed successfully!\n");
 }
 
 void freeRbNodesRec(rbTree* tree, rbNode* node){

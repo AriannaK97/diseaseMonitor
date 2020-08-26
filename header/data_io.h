@@ -12,7 +12,7 @@
 #include "hashTable.h"
 #include "structs.h"
 
-#define BUCKET_SIZE 68              /*minimum bucket size for just one entry*/
+#define BUCKET_SIZE 52              /*minimum bucket size for just one entry*/
 
 enum defAttribute{
     LINE_LENGTH,

@@ -162,10 +162,10 @@ PatientCase* getPatient(char* buffer){
         }else if (tokenCase == 10){
             newPatient->exitDate->year = atoi(token);
             if(!dateInputValidation(newPatient->entryDate, newPatient->exitDate)){
-                fprintf(stderr, "New record discarded\n Invalid importDate: %d-%d-%d | exportDate: %d-%d-%d\n",
-                        newPatient->entryDate->day, newPatient->entryDate->month, newPatient->entryDate->year,
+                fprintf(stderr, "New record discarded\n Invalid dates for patient %s : importDate: %d-%d-%d | exportDate: %d-%d-%d\n",
+                        newPatient->caseNum, newPatient->entryDate->day, newPatient->entryDate->month, newPatient->entryDate->year,
                         newPatient->exitDate->day, newPatient->exitDate->month, newPatient->exitDate->year);
-                exit(1);
+                return NULL;
             }
             token = strtok(NULL, dateDelim);
         }
@@ -205,15 +205,16 @@ CmdManager* read_input_file(FILE* patientRecordsFile, size_t maxStrLength, int d
     while(getline(&buffer, &maxStrLength, patientRecordsFile) >= 0){
 
         newPatient = getPatient(buffer);
-        newNode = nodeInit(newPatient);
-
-        if(patientList == NULL){
-            patientList = linkedListInit(newNode);
-        }else if(!searchListForRecordID(patientList, newPatient->caseNum)){
-            push(newNode, patientList);
+        if(newPatient != NULL){
+            newNode = nodeInit(newPatient);
+            if(patientList == NULL){
+                patientList = linkedListInit(newNode);
+            }else if(!searchListForRecordID(patientList, newPatient->caseNum)){
+                push(newNode, patientList);
+            }
+            hashPut(diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize, newNode);
+            hashPut(countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize, newNode);
         }
-        hashPut(diseaseHashTable, strlen(newPatient->virus), newPatient->virus, bucketSize, newNode);
-        hashPut(countryHashTable, strlen(newPatient->country), newPatient->country, bucketSize, newNode);
     }
 
 

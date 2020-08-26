@@ -97,18 +97,20 @@ bool searchNodeForRecordID_ExitDateUpdate(List* linkedList, char* key, Date* exi
                 exitPatient->exitDate->year = exitDate->year;
                 return true;
             }else{
-                fprintf(stdout,"Exit date could not be updated for patient:\n case number: %s | name: %s | "
+                fprintf(stderr, "Error\n");
+/*                fprintf(stdout,"Exit date could not be updated for patient:\n case number: %s | name: %s | "
                                "surname: %s | virus: %s | country: %s | entryDate: %d-%d-%d\n\nInvalid exit date: "
                                "%d-%d-%d", exitPatient->caseNum, exitPatient->name, exitPatient->surname,
                                exitPatient->virus, exitPatient->country, exitPatient->entryDate->day,
                                exitPatient->entryDate->month, exitPatient->entryDate->year, exitPatient->exitDate->day,
-                               exitPatient->exitDate->month, exitPatient->exitDate->year);
+                               exitPatient->exitDate->month, exitPatient->exitDate->year);*/
                 return false;
             }
         }
         node = node->next;
     }
-    fprintf(stderr, "Could not find the patient with record id %s in the system\n", key);
+    //fprintf(stderr, "Could not find the patient with record id %s in the system\n", key);
+    fprintf(stderr, "Error\n");
     return false;
 }
 

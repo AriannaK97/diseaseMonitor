@@ -176,7 +176,7 @@ HeapNode* popHeapNode(Heap* heapTree){
         return NULL;
     }
     if(heapTree->numOfNodes == 1){
-        fprintf(stdout, "%s: %d\n", heapTree->root->data, heapTree->root->dataSum);
+        fprintf(stdout, "%s %d\n", heapTree->root->data, heapTree->root->dataSum);
         heapTree->numOfNodes--;
         return heapTree->root;
     }
@@ -186,7 +186,7 @@ HeapNode* popHeapNode(Heap* heapTree){
 
     swapValues(currentRoot, lastTreeNode);
 
-    fprintf(stdout, "%s: %d\n", lastTreeNode->data, lastTreeNode->dataSum);
+    fprintf(stdout, "%s %d\n", lastTreeNode->data, lastTreeNode->dataSum);
 
     deleteNodeFromHeap(lastTreeNode);
 

@@ -24,7 +24,8 @@ void globalDiseaseStats(CmdManager* manager, Date* date1, Date* date2){
     }else {
         while (hashIterateValues(&iterator, COUNT_ALL) != NULL);
     }
-    fprintf(stdout, "Total number of patients counted: %d\n~$:", iterator.counter);
+    fprintf(stdout, "\n~$:");
+    //fprintf(stdout, "Total number of patients counted: %d\n~$:", iterator.counter);
 }
 
 /**
@@ -42,12 +43,16 @@ void diseaseFrequency(CmdManager* manager, char* virusName, Date* date1, Date* d
     iterator.virus = virusName;
     if(country == NULL) {
         while (hashIterateValues(&iterator, COUNT_ALL_BETWEEN_DATES_WITH_VIRUS) != NULL);
-        fprintf(stdout, "Total number of patients counted: %d\n~$:", iterator.counter);
+        //fprintf(stdout, "Total number of patients counted: %d\n~$:", iterator.counter);
     }else {
         iterator.country = country;
         while (hashIterateValues(&iterator, COUNT_ALL_BETWEEN_DATES_WITH_VIRUS_AND_COUNTRY) != NULL);
-        fprintf(stdout, "Total number of patients counted: %d\n~$:", iterator.counter);
+        //fprintf(stdout, "Total number of patients counted: %d\n~$:", iterator.counter);
     }
+    if(iterator.counter == 0){
+        fprintf(stdout, "error\n");
+    }
+    fprintf(stdout, "\n~$:");
 }
 
 
@@ -68,7 +73,8 @@ void topk_Diseases(CmdManager* manager, int k, char* country, Date* date1, Date*
         while (hashIterateValues(&iterator, GET_HEAP_NODES_COUNTRY) != NULL);
     }
     if(iterator.heapNodes == NULL || iterator.heapNodes->head == NULL){
-        fprintf(stdout, "There are no disease cases for %s\n~$:", country);
+        //fprintf(stdout, "There are no disease cases for %s\n~$:", country);
+        fprintf(stdout, "error\n~$:");
         freeHeapTree(maxHeap);
     }else{
         Node* currentNode = iterator.heapNodes->head;
@@ -106,7 +112,8 @@ void topk_Countries(CmdManager* manager, int k, char* disease, Date* date1, Date
         while (hashIterateValues(&iterator, GET_HEAP_NODES_VIRUS) != NULL);
     }
     if(iterator.heapNodes == NULL || iterator.heapNodes->head == NULL){
-        fprintf(stdout, "There are no countries with cases of %s\n~$:", disease);
+        //fprintf(stdout, "There are no countries with cases of %s\n~$:", disease);
+        fprintf(stdout, "error\n~$:");
         freeHeapTree(maxHeap);
     }else{
         Node* currentNode = iterator.heapNodes->head;
@@ -119,7 +126,7 @@ void topk_Countries(CmdManager* manager, int k, char* disease, Date* date1, Date
             k = maxHeap->numOfNodes;
         }
         while (k > 0){
-            popHeapNode(maxHeap);
+            maxHeap->root = popHeapNode(maxHeap);
             k--;
         }
         fprintf(stdout, "~$:");
@@ -137,9 +144,11 @@ void insertPatientRecord(CmdManager* manager, char* args){
 
     if(writeEntry(args, manager->patientList, manager->diseaseHashTable,
             manager->countryHashTable, manager->bucketSize))
-        fprintf(stdout,"New record successfully added.\n~$:");
+        //fprintf(stdout,"New record successfully added.\n~$:");
+        fprintf(stdout,"Record added\n~$:");
     else
-        fprintf(stderr,"New record failed to be inserted.\n~$:");
+        fprintf(stdout, "error\n~$:");
+        //fprintf(stderr,"New record failed to be inserted.\n~$:");
     /**
      * Uncomment the line below to print the patients list and check the insertion
      * */
@@ -160,10 +169,12 @@ void recordPatientExit(CmdManager* manager, char* args){
     exitDate.month = atoi(strtok(NULL, "-"));
     exitDate.year = atoi(strtok(NULL, "-"));
 
-    if(searchNodeForRecordID_ExitDateUpdate(manager->patientList, recordId, &exitDate))
-        fprintf(stdout, "Patient's %s exit date, successfully updated.\n~$:", recordId);
-    else{
-        fprintf(stderr, "Could not update exit date\n~$:");
+    if(searchNodeForRecordID_ExitDateUpdate(manager->patientList, recordId, &exitDate)) {
+        //fprintf(stdout, "Patient's %s exit date, successfully updated.\n~$:", recordId);
+        fprintf(stdout,"Record Updated\n~$:");
+    }else{
+        fprintf(stdout,"Not found\n~$:");
+        //fprintf(stderr, "Could not update exit date\n~$:");
     }
 
     /**
@@ -190,7 +201,9 @@ void numCurrentPatients(CmdManager* manager, char* disease){
                 for(int i = 0; i < bucket->numOfEntries; i++){
                     if(strcmp(disease, bucket->entry[i].data)==0){
                         int patientsNum = countPatients(bucket->entry[i].tree, COUNT_HOSPITALISED, NULL);
-                        fprintf(stdout, "The number of the currently hospitalised patients for %s is: %d\n~$:", disease, patientsNum);
+                        if(strlen(bucket->entry[i].data)!=0)
+                            fprintf(stdout, "%s %d\n~$:", disease, patientsNum);
+                            //fprintf(stdout, "The number of the currently hospitalised patients for %s is: %d\n~$:", disease, patientsNum);
                         diseaseExists = 1;
                         break;
                     }
@@ -200,26 +213,31 @@ void numCurrentPatients(CmdManager* manager, char* disease){
                 bucket = bucket->next;
             }
             if(!diseaseExists){
-                fprintf(stdout, "The disease %s does not exist in the system\n~$:", disease);
+                fprintf(stdout, "%s 0\n~$:", disease);
+                //fprintf(stdout, "The disease %s does not exist in the system\n~$:", disease);
             }
         }else
-            fprintf(stdout, "The number of hospitalised patients for %s: 0\n~$:", disease);
+            fprintf(stdout, "%s 0\n~$:", disease);
+            //fprintf(stdout, "The number of hospitalised patients for %s: 0\n~$:", disease);
     }else{
         int totalCounted = 0;
-        for (int h = 0; h < manager->diseaseHashTable->capacity; h++ ){
+        for (unsigned int h = 0; h < manager->diseaseHashTable->capacity; h++ ){
             Bucket* bucket = manager->diseaseHashTable->table[h];
             if(bucket != NULL){
                 while (bucket != NULL){
                     for(int i = 0; i < bucket->numOfEntries; i++){
                         int patientsNum = countPatients(bucket->entry[i].tree, COUNT_HOSPITALISED, NULL);
-                        fprintf(stdout, "The number of the currently hospitalised patients for %s is: %d\n~$:", bucket->entry[i].data, patientsNum);
+                        if(strlen(bucket->entry[i].data)!=0)
+                            fprintf(stdout, "%s %d\n", bucket->entry[i].data, patientsNum);
+                            //fprintf(stdout, "The number of the currently hospitalised patients for %s is: %d\n~$:", bucket->entry[i].data, patientsNum);
                         totalCounted += patientsNum;
                     }
                     bucket = bucket->next;
                 }
             }
         }
-        fprintf(stdout, "Total number of patients counted: %d\n~$:", totalCounted);
+        fprintf(stdout, "\n~$:");
+        //fprintf(stdout, "Total number of patients counted: %d\n~$:", totalCounted);
     }
 }
 
@@ -227,14 +245,14 @@ void numCurrentPatients(CmdManager* manager, char* disease){
  * Exit from the application - Memory dialloccation
  * */
 void exitMonitor(CmdManager* manager){
-
-    fprintf(stdout, "Destroying disease HashTable...\n");
+    fprintf(stdout, "exiting\n");
+    //fprintf(stdout, "Destroying disease HashTable...\n");
     freeHashTable(manager->diseaseHashTable);
 
-    fprintf(stdout, "Destroying country HashTable...\n");
+    //fprintf(stdout, "Destroying country HashTable...\n");
     freeHashTable(manager->countryHashTable);
 
-    fprintf(stdout, "Destroy patient list...\n");
+    //fprintf(stdout, "Destroy patient list...\n");
     listMemoryDeallock(manager->patientList);
 
     free(manager);
@@ -319,7 +337,7 @@ void commandServer(CmdManager* manager){
                 free(date1);
                 free(date2);
 
-            } else if (strcmp(command, "/topk_Diseases") == 0) {
+            } else if (strcmp(command, "/topk-Diseases") == 0) {
 
                 int k = atoi(strtok(NULL, " "));
                 char *country = strtok(NULL, " ");
@@ -345,7 +363,7 @@ void commandServer(CmdManager* manager){
                     fprintf(stderr, "Missing date2. Please try again...\n~$:");
                 }
 
-            } else if (strcmp(command, "/topk_Countries") == 0) {
+            } else if (strcmp(command, "/topk-Countries") == 0) {
 
                 int k = atoi(strtok(NULL, " "));
                 char *disease = strtok(NULL, " ");
